@@ -47,4 +47,4 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-022 | Para birimine göre harcama öngörüsü | in_progress | yüksek | L | Faz 3 | Currency rate provider + budget estimate çekirdeği eklendi; gerçek FX API adaptörü ve tahmin UI'si sırada. |
 | F-023 | Packr-benzeri akıllı valiz şablonları | triaged | yüksek | M | Faz 3 | Destinasyon/süre/hava durumuna göre otomatik packing önerileri + kategorik valiz şablonları. |
 | F-024 | Elk-benzeri sade hedef ülke kur görünümü | triaged | yüksek | M | Faz 3 | Tüm kurlar yerine sadece seyahat edilen ülke kuru + kişisel harcama profili dönüşümü. |
-| F-025 | Kişisel harcama profili (öğün/içecek/ulaşım) | in_progress | yüksek | M | Faz 3 | Expense profile modeli + budget estimate from profile çekirdeği eklendi; UI formu ve gerçek kur API bağlama sırada. |
+| F-025 | Kişisel harcama profili (öğün/içecek/ulaşım) | in_progress | yüksek | M | Faz 3 | Expense profile modeli + budget estimate from profile + Travel workspace UI formu eklendi; gerçek kur API bağlama ve UX polish sırada. |

@@ -690,5 +690,18 @@ struct RipoCoreTests {
         #expect(vm.packingItems.count == 1)
         #expect(vm.budgetEstimate != nil)
         #expect(vm.weatherSummary?.condition == .cloudy)
+
+        vm.expenseBreakfast = "12"
+        vm.expenseLunch = "20"
+        vm.expenseDinner = "35"
+        vm.expenseDrinks = "8"
+        vm.expenseTransport = "10"
+        vm.expenseMisc = "5"
+        await vm.estimateBudgetFromProfile()
+        #expect(vm.budgetEstimate != nil)
+        if let estimate = vm.budgetEstimate {
+            #expect(estimate.dailyEstimate == 90 * estimate.fxRateUsed)
+            #expect(estimate.currency == "EUR")
+        }
     }
 }

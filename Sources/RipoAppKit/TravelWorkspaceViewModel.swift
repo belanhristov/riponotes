@@ -20,6 +20,12 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     @Published public private(set) var packingItems: [PackingItem] = []
     @Published public private(set) var budgetEstimate: TripBudgetEstimate?
     @Published public private(set) var weatherSummary: WeatherSnapshot?
+    @Published public var expenseBreakfast: String = "10"
+    @Published public var expenseLunch: String = "20"
+    @Published public var expenseDinner: String = "30"
+    @Published public var expenseDrinks: String = "10"
+    @Published public var expenseTransport: String = "10"
+    @Published public var expenseMisc: String = "10"
 
     @Published public var errorMessage: String?
 
@@ -165,6 +171,27 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             budgetEstimate = try await planner.estimateBudget(
                 tripId: selectedTripId,
                 dailySpendInBaseCurrency: dailySpendInBaseCurrency
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func estimateBudgetFromProfile() async {
+        guard let selectedTripId else { return }
+        do {
+            let profile = TripExpenseProfile(
+                breakfastCost: Double(expenseBreakfast) ?? 0,
+                lunchCost: Double(expenseLunch) ?? 0,
+                dinnerCost: Double(expenseDinner) ?? 0,
+                drinksCost: Double(expenseDrinks) ?? 0,
+                transportCost: Double(expenseTransport) ?? 0,
+                miscCost: Double(expenseMisc) ?? 0
+            )
+            budgetEstimate = try await planner.estimateBudgetFromExpenseProfile(
+                tripId: selectedTripId,
+                profile: profile
             )
             errorMessage = nil
         } catch {

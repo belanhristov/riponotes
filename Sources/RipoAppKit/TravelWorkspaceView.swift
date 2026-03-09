@@ -121,6 +121,20 @@ public struct TravelWorkspaceView: View {
             }
             .textFieldStyle(.roundedBorder)
 
+            HStack(spacing: 8) {
+                TextField("Breakfast", text: $viewModel.expenseBreakfast)
+                TextField("Lunch", text: $viewModel.expenseLunch)
+                TextField("Dinner", text: $viewModel.expenseDinner)
+                TextField("Drinks", text: $viewModel.expenseDrinks)
+                TextField("Transport", text: $viewModel.expenseTransport)
+                TextField("Misc", text: $viewModel.expenseMisc)
+                Button("Estimate From Profile") {
+                    Task { await viewModel.estimateBudgetFromProfile() }
+                }
+                .buttonStyle(.bordered)
+            }
+            .textFieldStyle(.roundedBorder)
+
             HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Segments: \(viewModel.segments.count)")
