@@ -47,6 +47,18 @@ public protocol AttachmentRepository: Sendable {
     func attachment(by id: UUID) async throws -> Attachment?
 }
 
+public protocol SecureStore: Sendable {
+    func setString(_ value: String, for key: String) async throws
+    func string(for key: String) async throws -> String?
+    func setData(_ value: Data, for key: String) async throws
+    func data(for key: String) async throws -> Data?
+    func removeValue(for key: String) async throws
+}
+
+public protocol AppAuthenticator: Sendable {
+    func authenticate(reason: String) async throws -> Bool
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

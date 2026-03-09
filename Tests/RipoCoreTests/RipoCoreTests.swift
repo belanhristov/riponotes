@@ -436,4 +436,89 @@ struct RipoCoreTests {
         #expect(journalVM.noteEditorViewModel.body.contains("Mood: Relaxed"))
         #expect(journalVM.noteEditorViewModel.body.contains("Place: Balcony"))
     }
+
+    @Test
+    func journalSecurityServiceSupportsPasscodeAndEncryptionRoundtrip() async throws {
+        let store = InMemorySecureStore()
+        let auth = InMemoryAppAuthenticator(nextResult: true)
+        let security = JournalSecurityService(secureStore: store, authenticator: auth)
+
+        try await security.enableLock(passcode: "1234")
+        var status = try await security.status()
+        #expect(status.isLockEnabled == true)
+        #expect(status.isUnlocked == true)
+
+        let cipher = try await security.encrypt("private journal entry")
+        #expect(cipher != "private journal entry")
+        let plain = try await security.decrypt(cipher)
+        #expect(plain == "private journal entry")
+
+        try await security.lock()
+        status = try await security.status()
+        #expect(status.isUnlocked == false)
+
+        try await security.unlockWithPasscode("1234")
+        status = try await security.status()
+        #expect(status.isUnlocked == true)
+    }
+
+    @MainActor
+    @Test
+    func journalWorkspaceBlocksEntryWhenLocked() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+        let security = JournalSecurityService(
+            secureStore: InMemorySecureStore(),
+            authenticator: InMemoryAppAuthenticator(nextResult: true)
+        )
+
+        let templateEngine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+
+        _ = try await templateEngine.createTemplate(
+            ownerUserId: userId,
+            name: "Locked Journal",
+            scope: .journal,
+            type: .daily,
+            titleTemplate: "Journal {{date}}",
+            bodyTemplate: "Mood: {{mood}}"
+        )
+
+        let editorService = NoteEditorService(noteRepository: noteRepo, syncEngine: sync)
+        let noteEditorVM = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: noteRepo,
+            editorService: editorService,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
+        )
+
+        let journalVM = JournalWorkspaceViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: templateEngine,
+            noteEditorViewModel: noteEditorVM,
+            securityService: security
+        )
+
+        await journalVM.load()
+        await journalVM.enableLock(passcode: "9999")
+        await journalVM.lockJournal()
+        #expect(journalVM.isLockEnabled == true)
+        #expect(journalVM.isUnlocked == false)
+
+        await journalVM.startFromSelectedTemplate()
+        #expect(journalVM.noteEditorViewModel.noteId == nil)
+
+        await journalVM.unlockWithPasscode("9999")
+        await journalVM.startFromSelectedTemplate()
+        #expect(journalVM.noteEditorViewModel.noteId != nil)
+    }
 }

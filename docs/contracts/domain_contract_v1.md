@@ -47,3 +47,11 @@ Yeni client, bilmediği alanları yok saymalıdır (`forward-compatible parsing`
 - `localPath: String`
 - `remoteURL: String?`
 - `metadataJSON: String`
+
+## Journal Security (v1)
+- App lock states: `isLockEnabled`, `isUnlocked`
+- Unlock methods: passcode, biometric
+- Locked session journal create/read should be blocked
+- Journal content encryption/decryption service:
+  - Encrypt before persistence (when lock enabled)
+  - Decrypt on read (only when unlocked session)

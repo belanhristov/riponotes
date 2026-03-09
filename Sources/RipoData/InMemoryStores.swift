@@ -194,3 +194,47 @@ public actor InMemoryAttachmentRepository: AttachmentRepository {
         attachmentsById[id]
     }
 }
+
+public actor InMemorySecureStore: SecureStore {
+    private var stringValues: [String: String] = [:]
+    private var dataValues: [String: Data] = [:]
+
+    public init() {}
+
+    public func setString(_ value: String, for key: String) async throws {
+        stringValues[key] = value
+    }
+
+    public func string(for key: String) async throws -> String? {
+        stringValues[key]
+    }
+
+    public func setData(_ value: Data, for key: String) async throws {
+        dataValues[key] = value
+    }
+
+    public func data(for key: String) async throws -> Data? {
+        dataValues[key]
+    }
+
+    public func removeValue(for key: String) async throws {
+        stringValues.removeValue(forKey: key)
+        dataValues.removeValue(forKey: key)
+    }
+}
+
+public actor InMemoryAppAuthenticator: AppAuthenticator {
+    private var nextResult: Bool
+
+    public init(nextResult: Bool = true) {
+        self.nextResult = nextResult
+    }
+
+    public func authenticate(reason _: String) async throws -> Bool {
+        nextResult
+    }
+
+    public func setNextResult(_ value: Bool) async {
+        nextResult = value
+    }
+}

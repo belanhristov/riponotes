@@ -3,6 +3,7 @@ import RipoDomain
 
 public struct JournalWorkspaceView: View {
     @ObservedObject private var viewModel: JournalWorkspaceViewModel
+    @State private var passcodeInput: String = ""
 
     public init(viewModel: JournalWorkspaceViewModel) {
         self.viewModel = viewModel
@@ -10,6 +11,31 @@ public struct JournalWorkspaceView: View {
 
     public var body: some View {
         VStack(spacing: 12) {
+            HStack(spacing: 8) {
+                TextField("Passcode", text: $passcodeInput)
+                    .textFieldStyle(.roundedBorder)
+                Button("Enable Lock") {
+                    Task { await viewModel.enableLock(passcode: passcodeInput) }
+                }
+                .buttonStyle(.bordered)
+                Button("Unlock") {
+                    Task { await viewModel.unlockWithPasscode(passcodeInput) }
+                }
+                .buttonStyle(.bordered)
+                Button("Biometric") {
+                    Task { await viewModel.unlockWithBiometrics() }
+                }
+                .buttonStyle(.bordered)
+                Button("Lock") {
+                    Task { await viewModel.lockJournal() }
+                }
+                .buttonStyle(.bordered)
+            }
+
+            Text("Lock: \(viewModel.isLockEnabled ? "Enabled" : "Disabled") • Session: \(viewModel.isUnlocked ? "Unlocked" : "Locked")")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
             HStack(spacing: 8) {
                 Button("New Journal Entry") {
                     Task { await viewModel.startBlankEntry() }
