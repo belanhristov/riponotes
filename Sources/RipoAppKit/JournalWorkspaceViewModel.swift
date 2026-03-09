@@ -15,6 +15,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
     @Published public var selectedDayPart: JourneyDayPart = .daytime
     @Published public var useAutoTemplate: Bool = true
     @Published public var encryptOnSave: Bool = false
+    @Published public private(set) var decryptedPreviewText: String?
 
     public let noteEditorViewModel: NoteEditorViewModel
 
@@ -227,6 +228,37 @@ public final class JournalWorkspaceViewModel: ObservableObject {
             let payload = noteEditorViewModel.body.replacingOccurrences(of: "[ENCRYPTED]\n", with: "")
             let plaintext = try await securityService.decrypt(payload)
             noteEditorViewModel.body = plaintext
+            decryptedPreviewText = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func decryptCurrentEntryToPreview() async {
+        guard isCurrentEntryEncrypted else {
+            decryptedPreviewText = nil
+            return
+        }
+        guard let securityService else {
+            errorMessage = "Journal security service unavailable."
+            return
+        }
+
+        do {
+            let status = try await securityService.status()
+            guard status.isLockEnabled else {
+                errorMessage = "Enable journal lock to decrypt this entry."
+                return
+            }
+            guard status.isUnlocked else {
+                errorMessage = String(describing: JournalSecurityError.locked)
+                return
+            }
+
+            let payload = noteEditorViewModel.body.replacingOccurrences(of: "[ENCRYPTED]\n", with: "")
+            let plaintext = try await securityService.decrypt(payload)
+            decryptedPreviewText = plaintext
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)

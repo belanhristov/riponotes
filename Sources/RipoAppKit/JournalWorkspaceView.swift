@@ -59,6 +59,11 @@ public struct JournalWorkspaceView: View {
                 .buttonStyle(.bordered)
 
                 if viewModel.isCurrentEntryEncrypted {
+                    Button("Secure Preview") {
+                        Task { await viewModel.decryptCurrentEntryToPreview() }
+                    }
+                    .buttonStyle(.bordered)
+
                     Button("Decrypt Entry") {
                         Task { await viewModel.decryptCurrentEntryIfNeeded() }
                     }
@@ -96,6 +101,25 @@ public struct JournalWorkspaceView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.secondary.opacity(0.08))
+                )
+            }
+
+            if let preview = viewModel.decryptedPreviewText {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Secure Preview (Read Only)")
+                        .font(.headline)
+                    ScrollView {
+                        Text(preview)
+                            .font(.footnote)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(minHeight: 100, maxHeight: 180)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.green.opacity(0.08))
                 )
             }
 

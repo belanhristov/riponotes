@@ -1133,6 +1133,57 @@ struct RipoCoreTests {
         #expect(journalVM.noteEditorViewModel.body == "This is private memory.")
     }
 
+    @MainActor
+    @Test
+    func journalWorkspaceSecurePreviewDoesNotMutateEncryptedBody() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let security = JournalSecurityService(
+            secureStore: InMemorySecureStore(),
+            authenticator: InMemoryAppAuthenticator(nextResult: true)
+        )
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+
+        let templateEngine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+        let editorService = NoteEditorService(noteRepository: noteRepo, syncEngine: sync)
+        let noteEditorVM = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: noteRepo,
+            editorService: editorService,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
+        )
+        let journalVM = JournalWorkspaceViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: templateEngine,
+            noteEditorViewModel: noteEditorVM,
+            securityService: security
+        )
+
+        await journalVM.enableLock(passcode: "1234")
+        journalVM.useAutoTemplate = false
+        await journalVM.startBlankEntry()
+        journalVM.noteEditorViewModel.title = "Preview Test"
+        journalVM.noteEditorViewModel.body = "Confidential reflection"
+        journalVM.encryptOnSave = true
+        await journalVM.saveCurrentEntry()
+
+        let encryptedBody = journalVM.noteEditorViewModel.body
+        #expect(encryptedBody.hasPrefix("[ENCRYPTED]\n"))
+
+        await journalVM.decryptCurrentEntryToPreview()
+        #expect(journalVM.decryptedPreviewText == "Confidential reflection")
+        #expect(journalVM.noteEditorViewModel.body == encryptedBody)
+    }
+
     @Test
     func contextSuggestionServiceProducesBeachSuggestionWhenSunnyAndNearby() async throws {
         let weather = InMemoryWeatherProvider(
