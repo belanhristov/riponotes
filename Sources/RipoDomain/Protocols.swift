@@ -40,6 +40,13 @@ public protocol TemplateRepository: Sendable {
     func templates(ownerUserId: UUID, scope: TemplateScope?) async throws -> [TemplateDefinition]
 }
 
+public protocol AttachmentRepository: Sendable {
+    func upsert(_ attachment: Attachment) async throws
+    func delete(attachmentId: UUID) async throws
+    func attachments(ownerType: AttachmentOwnerType, ownerId: UUID) async throws -> [Attachment]
+    func attachment(by id: UUID) async throws -> Attachment?
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

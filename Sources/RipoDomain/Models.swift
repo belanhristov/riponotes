@@ -68,6 +68,18 @@ public enum TemplateType: String, Codable, Sendable {
     case custom
 }
 
+public enum AttachmentType: String, Codable, Sendable {
+    case image
+    case audio
+    case file
+    case mail
+}
+
+public enum AttachmentOwnerType: String, Codable, Sendable {
+    case note
+    case template
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider
@@ -367,6 +379,40 @@ public struct TemplateDefinition: Identifiable, Codable, Sendable, Equatable {
         self.type = type
         self.titleTemplate = titleTemplate
         self.bodyTemplate = bodyTemplate
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct Attachment: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var ownerType: AttachmentOwnerType
+    public var ownerId: UUID
+    public var type: AttachmentType
+    public var localPath: String
+    public var remoteURL: String?
+    public var metadataJSON: String
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        ownerType: AttachmentOwnerType,
+        ownerId: UUID,
+        type: AttachmentType,
+        localPath: String,
+        remoteURL: String? = nil,
+        metadataJSON: String = "{}",
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.ownerType = ownerType
+        self.ownerId = ownerId
+        self.type = type
+        self.localPath = localPath
+        self.remoteURL = remoteURL
+        self.metadataJSON = metadataJSON
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

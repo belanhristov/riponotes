@@ -38,3 +38,12 @@ Bu sözleşme platform bağımsızdır ve Apple (SwiftUI) + Android (Kotlin) ist
 
 ## Compatibility Rule
 Yeni client, bilmediği alanları yok saymalıdır (`forward-compatible parsing`).
+
+## Attachment (Image-first v1)
+- `Attachment`
+- `ownerType: note|template`
+- `ownerId: UUID`
+- `type: image|audio|file|mail`
+- `localPath: String`
+- `remoteURL: String?`
+- `metadataJSON: String`

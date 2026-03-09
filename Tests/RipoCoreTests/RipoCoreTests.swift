@@ -246,4 +246,38 @@ struct RipoCoreTests {
         #expect(note.plainTextBody.contains("Mood: Enerjik"))
         #expect(note.plainTextBody.contains("Place: Sahil"))
     }
+
+    @Test
+    func attachmentServiceAddsAndUpdatesImageAttachments() async throws {
+        let repo = InMemoryAttachmentRepository()
+        let service = AttachmentService(attachmentRepository: repo)
+        let noteId = UUID()
+        let templateId = UUID()
+
+        let noteImage = try await service.addImageToNote(
+            noteId: noteId,
+            localPath: "/tmp/note-image.jpg",
+            metadataJSON: "{\"width\":1200,\"height\":800}"
+        )
+        let templateImage = try await service.addImageToTemplate(
+            templateId: templateId,
+            localPath: "/tmp/template-image.jpg"
+        )
+
+        let updated = try await service.updateMetadata(
+            attachmentId: noteImage.id,
+            metadataJSON: "{\"width\":1024,\"height\":768,\"edited\":true}"
+        )
+        #expect(updated.metadataJSON.contains("\"edited\":true"))
+
+        let noteAttachments = try await repo.attachments(ownerType: .note, ownerId: noteId)
+        let templateAttachments = try await repo.attachments(ownerType: .template, ownerId: templateId)
+        #expect(noteAttachments.count == 1)
+        #expect(templateAttachments.count == 1)
+        #expect(templateImage.ownerType == .template)
+
+        try await service.removeAttachment(templateImage.id)
+        let afterDelete = try await repo.attachments(ownerType: .template, ownerId: templateId)
+        #expect(afterDelete.isEmpty)
+    }
 }

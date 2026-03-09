@@ -170,3 +170,27 @@ public actor InMemoryTemplateRepository: TemplateRepository {
             .sorted(by: { $0.updatedAt > $1.updatedAt })
     }
 }
+
+public actor InMemoryAttachmentRepository: AttachmentRepository {
+    private var attachmentsById: [UUID: Attachment] = [:]
+
+    public init() {}
+
+    public func upsert(_ attachment: Attachment) async throws {
+        attachmentsById[attachment.id] = attachment
+    }
+
+    public func delete(attachmentId: UUID) async throws {
+        attachmentsById.removeValue(forKey: attachmentId)
+    }
+
+    public func attachments(ownerType: AttachmentOwnerType, ownerId: UUID) async throws -> [Attachment] {
+        attachmentsById.values
+            .filter { $0.ownerType == ownerType && $0.ownerId == ownerId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func attachment(by id: UUID) async throws -> Attachment? {
+        attachmentsById[id]
+    }
+}
