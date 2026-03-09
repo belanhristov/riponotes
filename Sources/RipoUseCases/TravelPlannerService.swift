@@ -8,6 +8,20 @@ public enum TravelPlannerError: Error {
     case invalidDailyEstimate
 }
 
+public struct TripFxQuote: Sendable, Equatable {
+    public var baseCurrency: String
+    public var targetCurrency: String
+    public var rate: Double
+    public var quotedAt: Date
+
+    public init(baseCurrency: String, targetCurrency: String, rate: Double, quotedAt: Date) {
+        self.baseCurrency = baseCurrency
+        self.targetCurrency = targetCurrency
+        self.rate = rate
+        self.quotedAt = quotedAt
+    }
+}
+
 public struct TravelPlannerService: Sendable {
     private let tripRepository: TripRepository
     private let currencyRateProvider: CurrencyRateProvider
@@ -195,5 +209,16 @@ public struct TravelPlannerService: Sendable {
     public func weatherSummaryForTripDestination(tripId: UUID, latitude: Double, longitude: Double) async throws -> WeatherSnapshot {
         guard try await tripRepository.trip(by: tripId) != nil else { throw TravelPlannerError.tripNotFound }
         return try await weatherProvider.currentWeather(latitude: latitude, longitude: longitude)
+    }
+
+    public func currentFxQuote(tripId: UUID, now: Date = .now) async throws -> TripFxQuote {
+        guard let trip = try await tripRepository.trip(by: tripId) else { throw TravelPlannerError.tripNotFound }
+        let rate = try await currencyRateProvider.rate(from: trip.baseCurrency, to: trip.targetCurrency)
+        return TripFxQuote(
+            baseCurrency: trip.baseCurrency,
+            targetCurrency: trip.targetCurrency,
+            rate: rate,
+            quotedAt: now
+        )
     }
 }

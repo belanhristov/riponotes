@@ -20,6 +20,7 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     @Published public private(set) var packingItems: [PackingItem] = []
     @Published public private(set) var budgetEstimate: TripBudgetEstimate?
     @Published public private(set) var weatherSummary: WeatherSnapshot?
+    @Published public private(set) var fxQuote: TripFxQuote?
     @Published public var expenseBreakfast: String = "10"
     @Published public var expenseLunch: String = "20"
     @Published public var expenseDinner: String = "30"
@@ -220,6 +221,16 @@ public final class TravelWorkspaceViewModel: ObservableObject {
         }
     }
 
+    public func refreshFxQuote() async {
+        guard let selectedTripId else { return }
+        do {
+            fxQuote = try await planner.currentFxQuote(tripId: selectedTripId)
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
     public func generateSmartPacking(
         weather: WeatherCondition,
         activities: [TravelActivity],
@@ -252,6 +263,7 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             packingItems = []
             budgetEstimate = nil
             weatherSummary = nil
+            fxQuote = nil
             return
         }
 

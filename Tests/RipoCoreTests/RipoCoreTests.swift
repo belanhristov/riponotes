@@ -718,6 +718,12 @@ struct RipoCoreTests {
         )
         #expect(vm.packingItems.count > 1)
         #expect(vm.packingItems.contains(where: { $0.text == "Swimsuit" }))
+
+        await vm.refreshFxQuote()
+        #expect(vm.fxQuote != nil)
+        #expect(vm.fxQuote?.baseCurrency == "USD")
+        #expect(vm.fxQuote?.targetCurrency == "EUR")
+        #expect(vm.fxQuote?.rate == 0.9)
     }
 
     @Test

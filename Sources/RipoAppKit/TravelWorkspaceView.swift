@@ -129,6 +129,10 @@ public struct TravelWorkspaceView: View {
                     }
                 }
                 .buttonStyle(.bordered)
+                Button("FX") {
+                    Task { await viewModel.refreshFxQuote() }
+                }
+                .buttonStyle(.bordered)
             }
             .textFieldStyle(.roundedBorder)
 
@@ -161,6 +165,22 @@ public struct TravelWorkspaceView: View {
                 }
             }
             .font(.footnote)
+
+            if let fx = viewModel.fxQuote {
+                HStack {
+                    Text("FX")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.blue.opacity(0.15))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    Text("1 \(fx.baseCurrency) = \(String(format: "%.4f", fx.rate)) \(fx.targetCurrency)")
+                        .font(.footnote)
+                    Text("(\(fx.quotedAt.formatted(date: .abbreviated, time: .shortened)))")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
