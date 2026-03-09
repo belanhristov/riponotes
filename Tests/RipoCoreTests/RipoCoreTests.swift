@@ -441,6 +441,126 @@ struct RipoCoreTests {
         #expect(igPayload.shareURL == "instagram://camera")
     }
 
+    @Test
+    func tripAlertServiceSchedulesPreTripAndJourneyPromptsAndRefreshesOnOpen() async throws {
+        let tripRepo = InMemoryTripRepository()
+        let reminderRepo = InMemoryReminderRepository()
+        let scheduler = InMemoryReminderScheduler()
+        let fx = InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9])
+        let weather = InMemoryWeatherProvider(
+            snapshot: WeatherSnapshot(condition: .sunny, temperatureCelsius: 24, feelsLikeCelsius: 25)
+        )
+        let planner = TravelPlannerService(
+            tripRepository: tripRepo,
+            currencyRateProvider: fx,
+            weatherProvider: weather
+        )
+
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let start = now.addingTimeInterval(5 * 24 * 60 * 60)
+        let end = start.addingTimeInterval(2 * 24 * 60 * 60)
+        let trip = Trip(
+            ownerUserId: UUID(),
+            title: "April Rome",
+            origin: "IST",
+            destination: "Rome",
+            destinationLatitude: 41.9028,
+            destinationLongitude: 12.4964,
+            startDate: start,
+            endDate: end,
+            baseCurrency: "USD",
+            targetCurrency: "EUR"
+        )
+        try await tripRepo.upsertTrip(trip)
+
+        let service = TripAlertService(
+            tripRepository: tripRepo,
+            reminderRepository: reminderRepo,
+            reminderScheduler: scheduler,
+            planner: planner
+        )
+
+        let preTrip = try await service.schedulePreTripChecks(tripId: trip.id, now: now)
+        #expect(preTrip.count == 2)
+        let journey = try await service.scheduleJourneyPrompts(tripId: trip.id, localHour: 9, now: now)
+        #expect(journey.count == 3)
+
+        let reminders = try await reminderRepo.reminders(for: trip.id)
+        #expect(reminders.count == 5)
+
+        let snapshot = try await service.refreshOnTripOpen(tripId: trip.id)
+        #expect(snapshot.fxQuote.rate == 0.9)
+        #expect(snapshot.weather?.condition == .sunny)
+    }
+
+    @Test
+    func journeyServiceCreatesEntryAndPlaceReviewWithLocationAndStars() async throws {
+        let tripRepo = InMemoryTripRepository()
+        let journeyRepo = InMemoryJourneyRepository()
+        let service = JourneyService(tripRepository: tripRepo, journeyRepository: journeyRepo)
+
+        let trip = Trip(
+            ownerUserId: UUID(),
+            title: "Rome",
+            origin: "IST",
+            destination: "Rome",
+            startDate: Date(timeIntervalSince1970: 2_000_000_000),
+            endDate: Date(timeIntervalSince1970: 2_000_100_000),
+            baseCurrency: "USD",
+            targetCurrency: "EUR"
+        )
+        try await tripRepo.upsertTrip(trip)
+
+        let entry = try await service.addJourneyEntry(
+            tripId: trip.id,
+            title: "Day 1",
+            body: "Trevi was crowded but beautiful.",
+            moodTag: "excited",
+            tags: ["rome", "trevi"]
+        )
+        let review = try await service.addPlaceReview(
+            tripId: trip.id,
+            journeyEntryId: entry.id,
+            placeName: "Trevi Fountain",
+            latitude: 41.9009,
+            longitude: 12.4833,
+            locationTag: "trevi-fountain",
+            rating: 5,
+            comment: "Night lights were amazing.",
+            tags: ["baroque", "mustsee"]
+        )
+        #expect(review.rating == 5)
+
+        let byTag = try await service.placeReviewsByLocationTag("trevi-fountain")
+        #expect(byTag.count == 1)
+        #expect(byTag.first?.placeName == "Trevi Fountain")
+        #expect(byTag.first?.journeyEntryId == entry.id)
+    }
+
+    @Test
+    func socialFeedServiceSupportsFollowTagCommentAndReactions() async throws {
+        let repo = InMemorySocialRepository()
+        let service = SocialFeedService(repository: repo)
+        let author = UUID()
+        let viewer = UUID()
+
+        let post = try await service.publishPost(
+            authorUserId: author,
+            text: "Trevi review posted",
+            tags: ["rome", "trevi"]
+        )
+        _ = try await service.addComment(postId: post.id, authorUserId: viewer, text: "Super useful")
+        _ = try await service.react(postId: post.id, userId: viewer, type: .like)
+        _ = try await service.followUser(followerUserId: viewer, followedUserId: author)
+        _ = try await service.followTag(followerUserId: viewer, tag: "rome")
+
+        let feed = try await service.feedForUser(userId: viewer)
+        #expect(feed.count == 1)
+        #expect(feed.first?.post.id == post.id)
+        #expect(feed.first?.comments.count == 1)
+        #expect(feed.first?.likeCount == 1)
+    }
+
     @MainActor
     @Test
     func tagCloudViewModelFiltersByQuery() async throws {

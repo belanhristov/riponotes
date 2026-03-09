@@ -96,6 +96,35 @@ public protocol TripRepository: Sendable {
     func budgetEstimate(tripId: UUID) async throws -> TripBudgetEstimate?
 }
 
+public protocol JourneyRepository: Sendable {
+    func upsertEntry(_ entry: JourneyEntry) async throws
+    func entries(tripId: UUID) async throws -> [JourneyEntry]
+    func entry(by id: UUID) async throws -> JourneyEntry?
+
+    func upsertPlaceReview(_ review: PlaceReview) async throws
+    func placeReviews(tripId: UUID) async throws -> [PlaceReview]
+    func placeReviews(locationTag: String) async throws -> [PlaceReview]
+}
+
+public protocol SocialRepository: Sendable {
+    func upsertPost(_ post: SocialPost) async throws
+    func post(by id: UUID) async throws -> SocialPost?
+    func posts(authorUserId: UUID?) async throws -> [SocialPost]
+    func posts(tag: String) async throws -> [SocialPost]
+
+    func upsertComment(_ comment: SocialComment) async throws
+    func comments(postId: UUID) async throws -> [SocialComment]
+
+    func upsertReaction(_ reaction: SocialReaction) async throws
+    func reactions(postId: UUID) async throws -> [SocialReaction]
+
+    func upsertUserFollow(_ follow: UserFollow) async throws
+    func follows(followerUserId: UUID) async throws -> [UserFollow]
+
+    func upsertTagFollow(_ follow: TagFollow) async throws
+    func tagFollows(followerUserId: UUID) async throws -> [TagFollow]
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

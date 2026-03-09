@@ -97,6 +97,11 @@ public enum TripSegmentType: String, Codable, Sendable, CaseIterable {
     case activity
 }
 
+public enum SocialReactionType: String, Codable, Sendable, CaseIterable {
+    case like
+    case dislike
+}
+
 public enum TripChecklistCategory: String, Codable, Sendable, CaseIterable {
     case documents
     case booking
@@ -502,6 +507,8 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
     public var title: String
     public var origin: String
     public var destination: String
+    public var destinationLatitude: Double?
+    public var destinationLongitude: Double?
     public var startDate: Date
     public var endDate: Date
     public var baseCurrency: String
@@ -516,6 +523,8 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
         title: String,
         origin: String,
         destination: String,
+        destinationLatitude: Double? = nil,
+        destinationLongitude: Double? = nil,
         startDate: Date,
         endDate: Date,
         baseCurrency: String,
@@ -529,6 +538,8 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
         self.title = title
         self.origin = origin
         self.destination = destination
+        self.destinationLatitude = destinationLatitude
+        self.destinationLongitude = destinationLongitude
         self.startDate = startDate
         self.endDate = endDate
         self.baseCurrency = baseCurrency
@@ -536,6 +547,196 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
         self.tags = tags
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+}
+
+public struct JourneyEntry: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var noteId: UUID?
+    public var title: String
+    public var body: String
+    public var moodTag: String?
+    public var tags: Set<String>
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        noteId: UUID? = nil,
+        title: String,
+        body: String,
+        moodTag: String? = nil,
+        tags: Set<String> = [],
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.noteId = noteId
+        self.title = title
+        self.body = body
+        self.moodTag = moodTag
+        self.tags = tags
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct PlaceReview: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var journeyEntryId: UUID?
+    public var placeName: String
+    public var latitude: Double
+    public var longitude: Double
+    public var locationTag: String
+    public var rating: Int
+    public var comment: String
+    public var tags: Set<String>
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        journeyEntryId: UUID? = nil,
+        placeName: String,
+        latitude: Double,
+        longitude: Double,
+        locationTag: String,
+        rating: Int,
+        comment: String,
+        tags: Set<String> = [],
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.journeyEntryId = journeyEntryId
+        self.placeName = placeName
+        self.latitude = latitude
+        self.longitude = longitude
+        self.locationTag = locationTag
+        self.rating = rating
+        self.comment = comment
+        self.tags = tags
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct SocialPost: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var authorUserId: UUID
+    public var tripId: UUID?
+    public var placeReviewId: UUID?
+    public var text: String
+    public var tags: Set<String>
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        authorUserId: UUID,
+        tripId: UUID? = nil,
+        placeReviewId: UUID? = nil,
+        text: String,
+        tags: Set<String> = [],
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.authorUserId = authorUserId
+        self.tripId = tripId
+        self.placeReviewId = placeReviewId
+        self.text = text
+        self.tags = tags
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct SocialComment: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var postId: UUID
+    public var authorUserId: UUID
+    public var text: String
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        postId: UUID,
+        authorUserId: UUID,
+        text: String,
+        createdAt: Date = .now
+    ) {
+        self.id = id
+        self.postId = postId
+        self.authorUserId = authorUserId
+        self.text = text
+        self.createdAt = createdAt
+    }
+}
+
+public struct SocialReaction: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var postId: UUID
+    public var userId: UUID
+    public var type: SocialReactionType
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        postId: UUID,
+        userId: UUID,
+        type: SocialReactionType,
+        createdAt: Date = .now
+    ) {
+        self.id = id
+        self.postId = postId
+        self.userId = userId
+        self.type = type
+        self.createdAt = createdAt
+    }
+}
+
+public struct UserFollow: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var followerUserId: UUID
+    public var followedUserId: UUID
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        followerUserId: UUID,
+        followedUserId: UUID,
+        createdAt: Date = .now
+    ) {
+        self.id = id
+        self.followerUserId = followerUserId
+        self.followedUserId = followedUserId
+        self.createdAt = createdAt
+    }
+}
+
+public struct TagFollow: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var followerUserId: UUID
+    public var tag: String
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        followerUserId: UUID,
+        tag: String,
+        createdAt: Date = .now
+    ) {
+        self.id = id
+        self.followerUserId = followerUserId
+        self.tag = tag
+        self.createdAt = createdAt
     }
 }
 

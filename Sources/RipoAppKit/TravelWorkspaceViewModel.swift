@@ -44,6 +44,7 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     private let attachmentService: AttachmentService?
     private let taggingService: TaggingService?
     private let socialShareService: SocialShareService
+    private let tripAlertService: TripAlertService?
 
     public init(
         ownerUserId: UUID,
@@ -53,7 +54,8 @@ public final class TravelWorkspaceViewModel: ObservableObject {
         attachmentRepository: AttachmentRepository? = nil,
         attachmentService: AttachmentService? = nil,
         taggingService: TaggingService? = nil,
-        socialShareService: SocialShareService = SocialShareService()
+        socialShareService: SocialShareService = SocialShareService(),
+        tripAlertService: TripAlertService? = nil
     ) {
         self.ownerUserId = ownerUserId
         self.tripRepository = tripRepository
@@ -63,6 +65,7 @@ public final class TravelWorkspaceViewModel: ObservableObject {
         self.attachmentService = attachmentService
         self.taggingService = taggingService
         self.socialShareService = socialShareService
+        self.tripAlertService = tripAlertService
     }
 
     public func loadTrips() async {
@@ -383,6 +386,12 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             } else {
                 tripAttachments = []
                 tripAttachmentTagInputs = [:]
+            }
+
+            if let tripAlertService {
+                let snapshot = try await tripAlertService.refreshOnTripOpen(tripId: selectedTripId)
+                fxQuote = snapshot.fxQuote
+                weatherSummary = snapshot.weather
             }
         } catch {
             errorMessage = String(describing: error)

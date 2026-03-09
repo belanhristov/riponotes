@@ -376,3 +376,114 @@ public actor InMemoryFxQuoteCache: FxQuoteCache {
         storage["\(baseCurrency.uppercased())_\(targetCurrency.uppercased())"]
     }
 }
+
+public actor InMemoryJourneyRepository: JourneyRepository {
+    private var entriesById: [UUID: JourneyEntry] = [:]
+    private var reviewsById: [UUID: PlaceReview] = [:]
+
+    public init() {}
+
+    public func upsertEntry(_ entry: JourneyEntry) async throws {
+        entriesById[entry.id] = entry
+    }
+
+    public func entries(tripId: UUID) async throws -> [JourneyEntry] {
+        entriesById.values
+            .filter { $0.tripId == tripId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func entry(by id: UUID) async throws -> JourneyEntry? {
+        entriesById[id]
+    }
+
+    public func upsertPlaceReview(_ review: PlaceReview) async throws {
+        reviewsById[review.id] = review
+    }
+
+    public func placeReviews(tripId: UUID) async throws -> [PlaceReview] {
+        reviewsById.values
+            .filter { $0.tripId == tripId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func placeReviews(locationTag: String) async throws -> [PlaceReview] {
+        let key = locationTag.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return reviewsById.values
+            .filter { $0.locationTag.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == key }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+}
+
+public actor InMemorySocialRepository: SocialRepository {
+    private var postsById: [UUID: SocialPost] = [:]
+    private var commentsById: [UUID: SocialComment] = [:]
+    private var reactionsById: [UUID: SocialReaction] = [:]
+    private var userFollowsById: [UUID: UserFollow] = [:]
+    private var tagFollowsById: [UUID: TagFollow] = [:]
+
+    public init() {}
+
+    public func upsertPost(_ post: SocialPost) async throws {
+        postsById[post.id] = post
+    }
+
+    public func post(by id: UUID) async throws -> SocialPost? {
+        postsById[id]
+    }
+
+    public func posts(authorUserId: UUID?) async throws -> [SocialPost] {
+        postsById.values
+            .filter { authorUserId == nil || $0.authorUserId == authorUserId }
+            .sorted(by: { $0.createdAt > $1.createdAt })
+    }
+
+    public func posts(tag: String) async throws -> [SocialPost] {
+        let key = tag.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return postsById.values
+            .filter { post in
+                post.tags.contains(where: { $0.lowercased() == key })
+            }
+            .sorted(by: { $0.createdAt > $1.createdAt })
+    }
+
+    public func upsertComment(_ comment: SocialComment) async throws {
+        commentsById[comment.id] = comment
+    }
+
+    public func comments(postId: UUID) async throws -> [SocialComment] {
+        commentsById.values
+            .filter { $0.postId == postId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func upsertReaction(_ reaction: SocialReaction) async throws {
+        reactionsById[reaction.id] = reaction
+    }
+
+    public func reactions(postId: UUID) async throws -> [SocialReaction] {
+        reactionsById.values
+            .filter { $0.postId == postId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func upsertUserFollow(_ follow: UserFollow) async throws {
+        userFollowsById[follow.id] = follow
+    }
+
+    public func follows(followerUserId: UUID) async throws -> [UserFollow] {
+        userFollowsById.values
+            .filter { $0.followerUserId == followerUserId }
+            .sorted(by: { $0.createdAt > $1.createdAt })
+    }
+
+    public func upsertTagFollow(_ follow: TagFollow) async throws {
+        tagFollowsById[follow.id] = follow
+    }
+
+    public func tagFollows(followerUserId: UUID) async throws -> [TagFollow] {
+        tagFollowsById.values
+            .filter { $0.followerUserId == followerUserId }
+            .sorted(by: { $0.createdAt > $1.createdAt })
+    }
+}
