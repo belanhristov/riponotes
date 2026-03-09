@@ -281,7 +281,7 @@ public final class TravelWorkspaceViewModel: ObservableObject {
         max(0, Int(now.timeIntervalSince(quotedAt) / 60.0))
     }
 
-    public nonisolated static func fxIsStale(quotedAt: Date, now: Date = .now, thresholdHours: Double = 24) -> Bool {
-        now.timeIntervalSince(quotedAt) > thresholdHours * 60.0 * 60.0
+    public nonisolated static func fxIsStale(quotedAt: Date, now: Date = .now, thresholdMinutes: Int = 60) -> Bool {
+        now.timeIntervalSince(quotedAt) > Double(thresholdMinutes) * 60.0
     }
 }
