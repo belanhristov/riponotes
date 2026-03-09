@@ -78,6 +78,11 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - Hedef lokasyona göre hava özeti
 - Para birimi bazlı harcama öngörüsü (FX entegrasyonu)
 
+15. Auth Strategy (Faz 1-2)
+- İlk sürüm: Apple Sign-In + Google Sign-In
+- Auth gate + session restore + sign-out
+- Email/password ve “şifremi unuttum” sadece plan (kapalı flag)
+
 ## Karar Kriteri (Yeni özellik geldiğinde)
 
 - Kullanıcı etkisi (yüksek/orta/düşük)
