@@ -57,6 +57,13 @@ public struct JournalWorkspaceView: View {
                     Task { await viewModel.saveCurrentEntry() }
                 }
                 .buttonStyle(.bordered)
+
+                if viewModel.isCurrentEntryEncrypted {
+                    Button("Decrypt Entry") {
+                        Task { await viewModel.decryptCurrentEntryIfNeeded() }
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
 
             HStack(spacing: 8) {

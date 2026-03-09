@@ -202,6 +202,37 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         }
     }
 
+    public var isCurrentEntryEncrypted: Bool {
+        noteEditorViewModel.body.hasPrefix("[ENCRYPTED]\n")
+    }
+
+    public func decryptCurrentEntryIfNeeded() async {
+        guard isCurrentEntryEncrypted else { return }
+        guard let securityService else {
+            errorMessage = "Journal security service unavailable."
+            return
+        }
+
+        do {
+            let status = try await securityService.status()
+            guard status.isLockEnabled else {
+                errorMessage = "Enable journal lock to decrypt this entry."
+                return
+            }
+            guard status.isUnlocked else {
+                errorMessage = String(describing: JournalSecurityError.locked)
+                return
+            }
+
+            let payload = noteEditorViewModel.body.replacingOccurrences(of: "[ENCRYPTED]\n", with: "")
+            let plaintext = try await securityService.decrypt(payload)
+            noteEditorViewModel.body = plaintext
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
     private func parsedVariables(_ text: String) -> [String: String] {
         var output: [String: String] = [:]
         for line in text.split(separator: "\n") {
