@@ -89,6 +89,29 @@ public enum WeatherCondition: String, Codable, Sendable, CaseIterable {
     case unknown
 }
 
+public enum TripSegmentType: String, Codable, Sendable, CaseIterable {
+    case flight
+    case hotel
+    case transport
+    case activity
+}
+
+public enum TripChecklistCategory: String, Codable, Sendable, CaseIterable {
+    case documents
+    case booking
+    case health
+    case finance
+    case misc
+}
+
+public enum PackingCategory: String, Codable, Sendable, CaseIterable {
+    case clothes
+    case tech
+    case medicine
+    case documents
+    case custom
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider
@@ -457,6 +480,164 @@ public struct PlaceContext: Codable, Sendable, Equatable {
         self.longitude = longitude
         self.label = label
         self.distanceToBeachMeters = distanceToBeachMeters
+    }
+}
+
+public struct Trip: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var ownerUserId: UUID
+    public var title: String
+    public var origin: String
+    public var destination: String
+    public var startDate: Date
+    public var endDate: Date
+    public var baseCurrency: String
+    public var targetCurrency: String
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        ownerUserId: UUID,
+        title: String,
+        origin: String,
+        destination: String,
+        startDate: Date,
+        endDate: Date,
+        baseCurrency: String,
+        targetCurrency: String,
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.ownerUserId = ownerUserId
+        self.title = title
+        self.origin = origin
+        self.destination = destination
+        self.startDate = startDate
+        self.endDate = endDate
+        self.baseCurrency = baseCurrency
+        self.targetCurrency = targetCurrency
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct TripSegment: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var type: TripSegmentType
+    public var startAt: Date
+    public var endAt: Date
+    public var providerName: String
+    public var confirmationCode: String
+    public var notes: String
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        type: TripSegmentType,
+        startAt: Date,
+        endAt: Date,
+        providerName: String,
+        confirmationCode: String,
+        notes: String = ""
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.type = type
+        self.startAt = startAt
+        self.endAt = endAt
+        self.providerName = providerName
+        self.confirmationCode = confirmationCode
+        self.notes = notes
+    }
+}
+
+public struct TripChecklistItem: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var category: TripChecklistCategory
+    public var text: String
+    public var isDone: Bool
+    public var isCritical: Bool
+    public var dueAt: Date?
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        category: TripChecklistCategory,
+        text: String,
+        isDone: Bool = false,
+        isCritical: Bool = false,
+        dueAt: Date? = nil
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.category = category
+        self.text = text
+        self.isDone = isDone
+        self.isCritical = isCritical
+        self.dueAt = dueAt
+    }
+}
+
+public struct PackingItem: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var category: PackingCategory
+    public var text: String
+    public var quantity: Int
+    public var isDone: Bool
+    public var isCritical: Bool
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        category: PackingCategory,
+        text: String,
+        quantity: Int = 1,
+        isDone: Bool = false,
+        isCritical: Bool = false
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.category = category
+        self.text = text
+        self.quantity = quantity
+        self.isDone = isDone
+        self.isCritical = isCritical
+    }
+}
+
+public struct TripBudgetEstimate: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var tripId: UUID
+    public var estimatedTotal: Double
+    public var currency: String
+    public var dailyEstimate: Double
+    public var fxRateUsed: Double
+    public var confidence: Double
+    public var generatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        tripId: UUID,
+        estimatedTotal: Double,
+        currency: String,
+        dailyEstimate: Double,
+        fxRateUsed: Double,
+        confidence: Double,
+        generatedAt: Date = .now
+    ) {
+        self.id = id
+        self.tripId = tripId
+        self.estimatedTotal = estimatedTotal
+        self.currency = currency
+        self.dailyEstimate = dailyEstimate
+        self.fxRateUsed = fxRateUsed
+        self.confidence = confidence
+        self.generatedAt = generatedAt
     }
 }
 

@@ -67,6 +67,28 @@ public protocol PlaceContextProvider: Sendable {
     func currentPlaceContext() async throws -> PlaceContext
 }
 
+public protocol CurrencyRateProvider: Sendable {
+    func rate(from baseCurrency: String, to targetCurrency: String) async throws -> Double
+}
+
+public protocol TripRepository: Sendable {
+    func upsertTrip(_ trip: Trip) async throws
+    func trip(by id: UUID) async throws -> Trip?
+    func trips(ownerUserId: UUID) async throws -> [Trip]
+
+    func upsertSegment(_ segment: TripSegment) async throws
+    func segments(tripId: UUID) async throws -> [TripSegment]
+
+    func upsertChecklistItem(_ item: TripChecklistItem) async throws
+    func checklistItems(tripId: UUID) async throws -> [TripChecklistItem]
+
+    func upsertPackingItem(_ item: PackingItem) async throws
+    func packingItems(tripId: UUID) async throws -> [PackingItem]
+
+    func upsertBudgetEstimate(_ estimate: TripBudgetEstimate) async throws
+    func budgetEstimate(tripId: UUID) async throws -> TripBudgetEstimate?
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

@@ -270,3 +270,85 @@ public actor InMemoryPlaceContextProvider: PlaceContextProvider {
         self.context = context
     }
 }
+
+public actor InMemoryCurrencyRateProvider: CurrencyRateProvider {
+    private var rates: [String: Double]
+
+    public init(rates: [String: Double]) {
+        self.rates = rates
+    }
+
+    public func rate(from baseCurrency: String, to targetCurrency: String) async throws -> Double {
+        if baseCurrency.uppercased() == targetCurrency.uppercased() {
+            return 1
+        }
+        let key = "\(baseCurrency.uppercased())_\(targetCurrency.uppercased())"
+        return rates[key] ?? 1
+    }
+
+    public func setRate(from baseCurrency: String, to targetCurrency: String, value: Double) async {
+        rates["\(baseCurrency.uppercased())_\(targetCurrency.uppercased())"] = value
+    }
+}
+
+public actor InMemoryTripRepository: TripRepository {
+    private var tripsById: [UUID: Trip] = [:]
+    private var segmentsById: [UUID: TripSegment] = [:]
+    private var checklistById: [UUID: TripChecklistItem] = [:]
+    private var packingById: [UUID: PackingItem] = [:]
+    private var budgetByTripId: [UUID: TripBudgetEstimate] = [:]
+
+    public init() {}
+
+    public func upsertTrip(_ trip: Trip) async throws {
+        tripsById[trip.id] = trip
+    }
+
+    public func trip(by id: UUID) async throws -> Trip? {
+        tripsById[id]
+    }
+
+    public func trips(ownerUserId: UUID) async throws -> [Trip] {
+        tripsById.values
+            .filter { $0.ownerUserId == ownerUserId }
+            .sorted(by: { $0.startDate < $1.startDate })
+    }
+
+    public func upsertSegment(_ segment: TripSegment) async throws {
+        segmentsById[segment.id] = segment
+    }
+
+    public func segments(tripId: UUID) async throws -> [TripSegment] {
+        segmentsById.values
+            .filter { $0.tripId == tripId }
+            .sorted(by: { $0.startAt < $1.startAt })
+    }
+
+    public func upsertChecklistItem(_ item: TripChecklistItem) async throws {
+        checklistById[item.id] = item
+    }
+
+    public func checklistItems(tripId: UUID) async throws -> [TripChecklistItem] {
+        checklistById.values
+            .filter { $0.tripId == tripId }
+            .sorted(by: { $0.text < $1.text })
+    }
+
+    public func upsertPackingItem(_ item: PackingItem) async throws {
+        packingById[item.id] = item
+    }
+
+    public func packingItems(tripId: UUID) async throws -> [PackingItem] {
+        packingById.values
+            .filter { $0.tripId == tripId }
+            .sorted(by: { $0.text < $1.text })
+    }
+
+    public func upsertBudgetEstimate(_ estimate: TripBudgetEstimate) async throws {
+        budgetByTripId[estimate.tripId] = estimate
+    }
+
+    public func budgetEstimate(tripId: UUID) async throws -> TripBudgetEstimate? {
+        budgetByTripId[tripId]
+    }
+}

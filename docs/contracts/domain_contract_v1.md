@@ -13,6 +13,11 @@ Bu sözleşme platform bağımsızdır ve Apple (SwiftUI) + Android (Kotlin) ist
 - `CalendarLink`
 - `Attachment`
 - `TemplateDefinition`
+- `Trip`
+- `TripSegment`
+- `TripChecklistItem`
+- `PackingItem`
+- `TripBudgetEstimate`
 
 ## Required Note Fields
 - `id: UUID`

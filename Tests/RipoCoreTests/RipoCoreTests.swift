@@ -546,4 +546,84 @@ struct RipoCoreTests {
         #expect(suggestion.body.contains("5 dakika"))
         #expect(suggestion.templateHints.contains("journal_walk"))
     }
+
+    @Test
+    func travelPlannerCreatesTripSegmentsChecklistsAndBudgetEstimate() async throws {
+        let tripRepo = InMemoryTripRepository()
+        let fx = InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9])
+        let weather = InMemoryWeatherProvider(
+            snapshot: WeatherSnapshot(condition: .sunny, temperatureCelsius: 26, feelsLikeCelsius: 28)
+        )
+        let planner = TravelPlannerService(
+            tripRepository: tripRepo,
+            currencyRateProvider: fx,
+            weatherProvider: weather
+        )
+
+        let userId = UUID()
+        let start = Date(timeIntervalSince1970: 2_200_000_000)
+        let end = start.addingTimeInterval(60 * 60 * 24 * 5)
+
+        let trip = try await planner.createTrip(
+            ownerUserId: userId,
+            title: "Rome Trip",
+            origin: "Istanbul",
+            destination: "Rome",
+            startDate: start,
+            endDate: end,
+            baseCurrency: "USD",
+            targetCurrency: "EUR"
+        )
+
+        _ = try await planner.addFlightSegment(
+            tripId: trip.id,
+            providerName: "THY",
+            confirmationCode: "TK123",
+            departureAt: start,
+            arrivalAt: start.addingTimeInterval(60 * 60 * 2)
+        )
+        _ = try await planner.addHotelSegment(
+            tripId: trip.id,
+            hotelName: "Roma Hotel",
+            confirmationCode: "HOTEL987",
+            checkIn: start,
+            checkOut: end
+        )
+
+        let checklist = try await planner.addChecklistItem(
+            tripId: trip.id,
+            category: .documents,
+            text: "Passport",
+            isCritical: true
+        )
+        let checklistDone = try await planner.toggleChecklistItem(checklist)
+        #expect(checklistDone.isDone == true)
+
+        let packing = try await planner.addPackingItem(
+            tripId: trip.id,
+            category: .clothes,
+            text: "T-Shirts",
+            quantity: 3
+        )
+        let packingDone = try await planner.togglePackingItem(packing)
+        #expect(packingDone.isDone == true)
+
+        let estimate = try await planner.estimateBudget(
+            tripId: trip.id,
+            dailySpendInBaseCurrency: 120
+        )
+        #expect(estimate.currency == "EUR")
+        #expect(estimate.fxRateUsed == 0.9)
+        #expect(estimate.estimatedTotal > 0)
+
+        let weatherSummary = try await planner.weatherSummaryForTripDestination(
+            tripId: trip.id,
+            latitude: 41.9,
+            longitude: 12.5
+        )
+        #expect(weatherSummary.condition == .sunny)
+
+        let segments = try await tripRepo.segments(tripId: trip.id)
+        #expect(segments.count == 2)
+    }
 }
