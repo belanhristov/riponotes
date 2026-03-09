@@ -11,8 +11,9 @@ public struct JournalWorkspaceView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
+        ScrollView {
+            VStack(spacing: 12) {
+                HStack(spacing: 8) {
                 TextField("Passcode", text: $passcodeInput)
                     .textFieldStyle(.roundedBorder)
                 Button("Enable Lock") {
@@ -33,11 +34,11 @@ public struct JournalWorkspaceView: View {
                 .buttonStyle(.bordered)
             }
 
-            Text("Lock: \(viewModel.isLockEnabled ? "Enabled" : "Disabled") • Session: \(viewModel.isUnlocked ? "Unlocked" : "Locked")")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                Text("Lock: \(viewModel.isLockEnabled ? "Enabled" : "Disabled") • Session: \(viewModel.isUnlocked ? "Unlocked" : "Locked")")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
-            HStack(spacing: 8) {
+                HStack(spacing: 8) {
                 Button("New Journal Entry") {
                     Task { await viewModel.startBlankEntry() }
                 }
@@ -71,7 +72,7 @@ public struct JournalWorkspaceView: View {
                 }
             }
 
-            HStack(spacing: 8) {
+                HStack(spacing: 8) {
                 Picker("Mood", selection: $viewModel.selectedMood) {
                     ForEach(JourneyMood.allCases, id: \.self) { mood in
                         Text(mood.title).tag(mood)
@@ -86,7 +87,7 @@ public struct JournalWorkspaceView: View {
                 Toggle("Encrypt On Save", isOn: $viewModel.encryptOnSave)
             }
 
-            if let suggestion = viewModel.contextSuggestion {
+                if let suggestion = viewModel.contextSuggestion {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Suggested Mode: \(suggestion.title)")
                         .font(.headline)
@@ -104,7 +105,7 @@ public struct JournalWorkspaceView: View {
                 )
             }
 
-            if let preview = viewModel.decryptedPreviewText {
+                if let preview = viewModel.decryptedPreviewText {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Secure Preview (Read Only)")
                         .font(.headline)
@@ -123,7 +124,7 @@ public struct JournalWorkspaceView: View {
                 )
             }
 
-            List(viewModel.journalTemplates, selection: selectedBinding) { template in
+                List(viewModel.journalTemplates, selection: selectedBinding) { template in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(template.name)
                         .font(.headline)
@@ -135,16 +136,17 @@ public struct JournalWorkspaceView: View {
                 .onTapGesture {
                     viewModel.selectTemplate(template.id)
                 }
-            }
+                }
+                .frame(minHeight: 180)
 
-            TextEditor(text: $viewModel.templateVariablesText)
+                TextEditor(text: $viewModel.templateVariablesText)
                 .frame(minHeight: 80)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                 )
 
-            if viewModel.isLockEnabled && !viewModel.isUnlocked {
+                if viewModel.isLockEnabled && !viewModel.isUnlocked {
                 VStack(spacing: 8) {
                     Text("Journal Locked")
                         .font(.headline)
@@ -157,17 +159,18 @@ public struct JournalWorkspaceView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.secondary.opacity(0.08))
                 )
-            } else {
-                NoteEditorView(viewModel: viewModel.noteEditorViewModel)
-            }
+                } else {
+                    NoteEditorView(viewModel: viewModel.noteEditorViewModel)
+                }
 
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
             }
+            .padding()
         }
-        .padding()
         .navigationTitle("Journal")
         .task {
             await viewModel.load()

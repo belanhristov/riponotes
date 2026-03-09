@@ -9,8 +9,9 @@ public struct TemplateStudioView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
+        ScrollView {
+            VStack(spacing: 12) {
+                HStack(spacing: 8) {
                 TextField("Template Name", text: $viewModel.draftName)
                     .textFieldStyle(.roundedBorder)
 
@@ -30,7 +31,7 @@ public struct TemplateStudioView: View {
                 .buttonStyle(.bordered)
             }
 
-            List(viewModel.templates, selection: selectedBinding) { template in
+                List(viewModel.templates, selection: selectedBinding) { template in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(template.name).font(.headline)
                     Text("\(template.scope.rawValue) • \(template.type.rawValue)")
@@ -41,9 +42,10 @@ public struct TemplateStudioView: View {
                 .onTapGesture {
                     viewModel.selectTemplate(template.id)
                 }
-            }
+                }
+                .frame(minHeight: 180)
 
-            HStack(spacing: 8) {
+                HStack(spacing: 8) {
                 Picker("Scope", selection: $viewModel.draftScope) {
                     ForEach(TemplateScope.allCases, id: \.self) { scope in
                         Text(scope.rawValue.capitalized).tag(scope)
@@ -56,10 +58,10 @@ public struct TemplateStudioView: View {
                 }
             }
 
-            TextField("Title Template", text: $viewModel.draftTitleTemplate)
-                .textFieldStyle(.roundedBorder)
+                TextField("Title Template", text: $viewModel.draftTitleTemplate)
+                    .textFieldStyle(.roundedBorder)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+                ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     toolbarButton("Indent") { viewModel.applyToolbarToDraftBody(.indent) }
                     toolbarButton("Outdent") { viewModel.applyToolbarToDraftBody(.outdent) }
@@ -69,7 +71,7 @@ public struct TemplateStudioView: View {
                 }
             }
 
-            TextEditor(text: $viewModel.draftBodyTemplate)
+                TextEditor(text: $viewModel.draftBodyTemplate)
                 .frame(minHeight: 120)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
@@ -79,7 +81,7 @@ public struct TemplateStudioView: View {
                     viewModel.refreshPreview()
                 }
 
-            TextEditor(text: $viewModel.previewVariablesText)
+                TextEditor(text: $viewModel.previewVariablesText)
                 .frame(minHeight: 80)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
@@ -89,7 +91,7 @@ public struct TemplateStudioView: View {
                     viewModel.refreshPreview()
                 }
 
-            VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 4) {
                 Text("Preview Title: \(viewModel.previewTitle)")
                     .font(.headline)
                 Text(viewModel.previewBody)
@@ -97,7 +99,7 @@ public struct TemplateStudioView: View {
                     .foregroundStyle(.secondary)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
                 Text("Template Images")
                     .font(.headline)
 
@@ -124,22 +126,23 @@ public struct TemplateStudioView: View {
                 }
             }
 
-            Button("Create Note From Selected") {
+                Button("Create Note From Selected") {
                 Task {
                     _ = await viewModel.createNoteFromSelectedTemplate(
                         variables: ["title": "Quick Start", "body": "Start writing..."]
                     )
                 }
-            }
-            .buttonStyle(.bordered)
+                }
+                .buttonStyle(.bordered)
 
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
             }
+            .padding()
         }
-        .padding()
         .navigationTitle("Template Studio")
         .task {
             await viewModel.load(scope: nil)

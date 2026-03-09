@@ -40,6 +40,8 @@ final class DemoContainer: ObservableObject {
     private let taggingService: TaggingService
     private let convertService: ConvertNoteService
     private let archiveService: JournalArchiveService
+    private let userProfileRepository = InMemoryUserProfileRepository()
+    private let userProfileService: UserProfileService
 
     let inboxViewModel: InboxViewModel
     let noteEditorViewModel: NoteEditorViewModel
@@ -47,6 +49,7 @@ final class DemoContainer: ObservableObject {
     let journalWorkspaceViewModel: JournalWorkspaceViewModel
     let tagCloudViewModel: TagCloudViewModel
     let journalArchiveViewModel: JournalArchiveViewModel
+    let profileViewModel: DemoProfileViewModel
 
     private var seeded = false
 
@@ -72,6 +75,7 @@ final class DemoContainer: ObservableObject {
             locationLinkRepository: locationLinkRepository
         )
         archiveService = JournalArchiveService(noteRepository: noteRepository)
+        userProfileService = UserProfileService(profileRepository: userProfileRepository)
 
         inboxViewModel = InboxViewModel(
             ownerUserId: ownerUserId,
@@ -114,6 +118,7 @@ final class DemoContainer: ObservableObject {
         )
         tagCloudViewModel = TagCloudViewModel(ownerUserId: ownerUserId, taggingService: taggingService)
         journalArchiveViewModel = JournalArchiveViewModel(ownerUserId: ownerUserId, archiveService: archiveService)
+        profileViewModel = DemoProfileViewModel(ownerUserId: ownerUserId, service: userProfileService)
     }
 
     func bootstrapIfNeeded() async {
@@ -137,10 +142,12 @@ final class DemoContainer: ObservableObject {
         )
 
         try? await inboxViewModel.loadInbox()
+        try? await noteEditorViewModel.open(noteId: nil)
         await templateStudioViewModel.load(scope: nil)
         await journalWorkspaceViewModel.load()
         await tagCloudViewModel.load()
         await journalArchiveViewModel.loadSelectedMonth()
+        await profileViewModel.load()
     }
 }
 
@@ -150,9 +157,19 @@ struct DemoRootView: View {
     var body: some View {
         TabView {
             NavigationStack {
+                DemoProfileView(viewModel: container.profileViewModel)
+            }
+            .tabItem { Text("Profile") }
+
+            NavigationStack {
                 InboxView(viewModel: container.inboxViewModel)
             }
             .tabItem { Text("Inbox") }
+
+            NavigationStack {
+                NoteEditorView(viewModel: container.noteEditorViewModel)
+            }
+            .tabItem { Text("Editor") }
 
             NavigationStack {
                 JournalWorkspaceView(viewModel: container.journalWorkspaceViewModel)
@@ -175,5 +192,71 @@ struct DemoRootView: View {
             .tabItem { Text("Archive") }
         }
         .frame(minWidth: 980, minHeight: 700)
+    }
+}
+
+@MainActor
+final class DemoProfileViewModel: ObservableObject {
+    @Published var username: String = ""
+    @Published var avatarPath: String = ""
+    @Published var message: String?
+    @Published var errorMessage: String?
+
+    private let ownerUserId: UUID
+    private let service: UserProfileService
+
+    init(ownerUserId: UUID, service: UserProfileService) {
+        self.ownerUserId = ownerUserId
+        self.service = service
+    }
+
+    func load() async {
+        message = "Set your unique username and avatar path."
+    }
+
+    func save() async {
+        do {
+            let profile = try await service.upsertProfile(
+                userId: ownerUserId,
+                username: username,
+                avatarPath: avatarPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : avatarPath
+            )
+            message = "Saved profile: @\(profile.username)"
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+}
+
+struct DemoProfileView: View {
+    @ObservedObject var viewModel: DemoProfileViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Profile")
+                .font(.largeTitle)
+                .bold()
+            TextField("Unique username", text: $viewModel.username)
+                .textFieldStyle(.roundedBorder)
+            TextField("Avatar path (/tmp/me.jpg)", text: $viewModel.avatarPath)
+                .textFieldStyle(.roundedBorder)
+            Button("Save Profile") {
+                Task { await viewModel.save() }
+            }
+            .buttonStyle(.borderedProminent)
+
+            if let message = viewModel.message {
+                Text(message)
+                    .foregroundStyle(.green)
+            }
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundStyle(.red)
+            }
+            Spacer()
+        }
+        .padding()
+        .navigationTitle("Profile")
     }
 }

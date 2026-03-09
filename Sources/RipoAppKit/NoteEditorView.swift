@@ -9,69 +9,70 @@ public struct NoteEditorView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 12) {
-            TextField("Title", text: $viewModel.title)
-                .textFieldStyle(.roundedBorder)
+        ScrollView {
+            VStack(spacing: 12) {
+                TextField("Title", text: $viewModel.title)
+                    .textFieldStyle(.roundedBorder)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    toolbarButton("Indent") { viewModel.applyToolbar(.indent) }
-                    toolbarButton("Outdent") { viewModel.applyToolbar(.outdent) }
-                    toolbarButton("H+") { viewModel.applyToolbar(.increaseHeading) }
-                    toolbarButton("H-") { viewModel.applyToolbar(.decreaseHeading) }
-                    toolbarButton("Checklist") { viewModel.applyToolbar(.toggleChecklist) }
-                    toolbarButton("Divider") { viewModel.applyToolbar(.insertDivider(afterLine: nil)) }
-                }
-            }
-
-            TextEditor(text: $viewModel.body)
-                .frame(minHeight: 220)
-                .padding(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
-                )
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Tags")
-                    .font(.headline)
-                HStack(spacing: 8) {
-                    TextField("Add tag (#travel, idea...)", text: $viewModel.newNoteTagText)
-                        .textFieldStyle(.roundedBorder)
-                    Button("Add Tag") {
-                        Task { await viewModel.addNoteTag() }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        toolbarButton("Indent") { viewModel.applyToolbar(.indent) }
+                        toolbarButton("Outdent") { viewModel.applyToolbar(.outdent) }
+                        toolbarButton("H+") { viewModel.applyToolbar(.increaseHeading) }
+                        toolbarButton("H-") { viewModel.applyToolbar(.decreaseHeading) }
+                        toolbarButton("Checklist") { viewModel.applyToolbar(.toggleChecklist) }
+                        toolbarButton("Divider") { viewModel.applyToolbar(.insertDivider(afterLine: nil)) }
                     }
-                    .buttonStyle(.bordered)
                 }
-                if viewModel.noteTags.isEmpty {
-                    Text("No tags yet")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(viewModel.noteTags, id: \.self) { tag in
-                                HStack(spacing: 4) {
-                                    Text("#\(tag)")
-                                    Button("x") {
-                                        Task { await viewModel.removeNoteTag(tag) }
+
+                TextEditor(text: $viewModel.body)
+                    .frame(minHeight: 220)
+                    .padding(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                    )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Tags")
+                        .font(.headline)
+                    HStack(spacing: 8) {
+                        TextField("Add tag (#travel, idea...)", text: $viewModel.newNoteTagText)
+                            .textFieldStyle(.roundedBorder)
+                        Button("Add Tag") {
+                            Task { await viewModel.addNoteTag() }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    if viewModel.noteTags.isEmpty {
+                        Text("No tags yet")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(viewModel.noteTags, id: \.self) { tag in
+                                    HStack(spacing: 4) {
+                                        Text("#\(tag)")
+                                        Button("x") {
+                                            Task { await viewModel.removeNoteTag(tag) }
+                                        }
+                                        .buttonStyle(.borderless)
                                     }
-                                    .buttonStyle(.borderless)
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.blue.opacity(0.12))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.blue.opacity(0.12))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                         }
                     }
                 }
-            }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Images")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Images")
+                        .font(.headline)
 
                 HStack(spacing: 8) {
                     TextField("Image path (/tmp/note.jpg)", text: $viewModel.newAttachmentPath)
@@ -134,11 +135,11 @@ public struct NoteEditorView: View {
                         }
                     }
                 }
-            }
+                }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Convert")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Convert")
+                        .font(.headline)
 
                 HStack(spacing: 8) {
                     DatePicker("Reminder", selection: $viewModel.convertReminderAt, displayedComponents: [.date, .hourAndMinute])
@@ -184,13 +185,13 @@ public struct NoteEditorView: View {
                     .buttonStyle(.bordered)
                 }
                 .textFieldStyle(.roundedBorder)
-            }
+                }
 
-            if let toolbarError = viewModel.toolbarError {
-                Text(toolbarError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-            }
+                if let toolbarError = viewModel.toolbarError {
+                    Text(toolbarError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
 
             if let attachmentError = viewModel.attachmentError {
                 Text(attachmentError)
@@ -215,8 +216,9 @@ public struct NoteEditorView: View {
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
+            }
+            .padding()
         }
-        .padding()
         .navigationTitle("Edit Note")
     }
 
