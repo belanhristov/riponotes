@@ -21,7 +21,7 @@ Durum etiketleri: `todo`, `in_progress`, `done`
 ## Epic 2: Notes Core
 
 ### Task 2.1 - Domain model + local persistence
-- Durum: `in_progress`
+- Durum: `done`
 - Hedef: User, Note, NoteBlock, Tag, Reminder modelleri persist edilir.
 - Kabul kriteri:
   - Note CRUD çalışır.

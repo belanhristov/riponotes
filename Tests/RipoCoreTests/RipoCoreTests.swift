@@ -105,4 +105,33 @@ struct RipoCoreTests {
         let jobs = try await sync.pendingJobs()
         #expect(jobs.count == 2) // create draft + update on save
     }
+
+    #if canImport(SwiftData)
+    @Test
+    func swiftDataRepositorySupportsCrudAndSearch() async throws {
+        let repo = try SwiftDataNoteRepository(inMemory: true)
+        let userId = UUID()
+
+        let note = Note(
+            ownerUserId: userId,
+            title: "Walk",
+            plainTextBody: "Sunny weather at the beach",
+            source: .manual,
+            tags: ["health", "outdoor"]
+        )
+
+        try await repo.create(note)
+
+        let inbox = try await repo.inboxNotes(ownerUserId: userId)
+        #expect(inbox.count == 1)
+
+        let matched = try await repo.search(ownerUserId: userId, query: "beach")
+        #expect(matched.count == 1)
+        #expect(matched.first?.id == note.id)
+
+        try await repo.softDelete(noteId: note.id, deletedAt: .now)
+        let afterDelete = try await repo.inboxNotes(ownerUserId: userId)
+        #expect(afterDelete.isEmpty)
+    }
+    #endif
 }
