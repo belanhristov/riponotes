@@ -1,6 +1,16 @@
 import Foundation
 import RipoDomain
 
+public struct TemplatePreview: Sendable, Equatable {
+    public var title: String
+    public var body: String
+
+    public init(title: String, body: String) {
+        self.title = title
+        self.body = body
+    }
+}
+
 public struct TemplateEngineService: Sendable {
     private let templateRepository: TemplateRepository
     private let noteRepository: NoteRepository
@@ -57,6 +67,41 @@ public struct TemplateEngineService: Sendable {
         cloned.updatedAt = now
         try await templateRepository.upsert(cloned)
         return cloned
+    }
+
+    @discardableResult
+    public func updateTemplate(
+        templateId: UUID,
+        name: String,
+        scope: TemplateScope,
+        type: TemplateType,
+        titleTemplate: String,
+        bodyTemplate: String,
+        now: Date = .now
+    ) async throws -> TemplateDefinition {
+        guard var template = try await templateRepository.template(by: templateId) else {
+            throw TemplateEngineError.templateNotFound
+        }
+
+        template.name = name
+        template.scope = scope
+        template.type = type
+        template.titleTemplate = titleTemplate
+        template.bodyTemplate = bodyTemplate
+        template.updatedAt = now
+        try await templateRepository.upsert(template)
+        return template
+    }
+
+    public func renderPreview(
+        titleTemplate: String,
+        bodyTemplate: String,
+        variables: [String: String]
+    ) -> TemplatePreview {
+        TemplatePreview(
+            title: render(titleTemplate, variables: variables),
+            body: render(bodyTemplate, variables: variables)
+        )
     }
 
     @discardableResult

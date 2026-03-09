@@ -321,14 +321,22 @@ struct RipoCoreTests {
             templateEngine: engine
         )
 
-        await vm.createTemplate(
-            name: "Daily Journal",
-            scope: .journal,
-            type: .daily,
-            titleTemplate: "Journal {{date}}",
-            bodyTemplate: "Mood: {{mood}}"
-        )
+        vm.draftName = "Daily Journal"
+        vm.draftScope = .journal
+        vm.draftType = .daily
+        vm.draftTitleTemplate = "Journal {{date}}"
+        vm.draftBodyTemplate = "Mood: {{mood}}"
+        await vm.createTemplateFromDraft()
         #expect(vm.templates.count == 1)
+        vm.previewVariablesText = "date=2026-03-09\nmood=Calm"
+        vm.refreshPreview()
+        #expect(vm.previewTitle == "Journal 2026-03-09")
+
+        vm.draftBodyTemplate = "Mood: {{mood}}\nPlace: {{place}}"
+        vm.previewVariablesText = "date=2026-03-09\nmood=Calm\nplace=Sahil"
+        vm.refreshPreview()
+        #expect(vm.previewBody.contains("Place: Sahil"))
+        await vm.saveSelectedTemplateEdits()
 
         await vm.cloneSelectedTemplate(newName: "Daily Journal Copy")
         #expect(vm.templates.count == 2)

@@ -54,12 +54,12 @@ public enum CalendarProvider: String, Codable, Sendable {
     case outlook
 }
 
-public enum TemplateScope: String, Codable, Sendable {
+public enum TemplateScope: String, Codable, Sendable, CaseIterable {
     case note
     case journal
 }
 
-public enum TemplateType: String, Codable, Sendable {
+public enum TemplateType: String, Codable, Sendable, CaseIterable {
     case meeting
     case shopping
     case project

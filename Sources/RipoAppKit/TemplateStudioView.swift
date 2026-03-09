@@ -3,7 +3,6 @@ import RipoDomain
 
 public struct TemplateStudioView: View {
     @ObservedObject private var viewModel: TemplateStudioViewModel
-    @State private var name: String = ""
 
     public init(viewModel: TemplateStudioViewModel) {
         self.viewModel = viewModel
@@ -12,25 +11,21 @@ public struct TemplateStudioView: View {
     public var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 8) {
-                TextField("Template Name", text: $name)
+                TextField("Template Name", text: $viewModel.draftName)
                     .textFieldStyle(.roundedBorder)
 
                 Button("Create") {
-                    Task {
-                        await viewModel.createTemplate(
-                            name: name.isEmpty ? "Untitled Template" : name,
-                            scope: .note,
-                            type: .custom,
-                            titleTemplate: "{{title}}",
-                            bodyTemplate: "{{body}}"
-                        )
-                        name = ""
-                    }
+                    Task { await viewModel.createTemplateFromDraft() }
                 }
                 .buttonStyle(.borderedProminent)
 
                 Button("Clone Selected") {
                     Task { await viewModel.cloneSelectedTemplate(newName: "Template Copy") }
+                }
+                .buttonStyle(.bordered)
+
+                Button("Save Edits") {
+                    Task { await viewModel.saveSelectedTemplateEdits() }
                 }
                 .buttonStyle(.bordered)
             }
@@ -46,6 +41,60 @@ public struct TemplateStudioView: View {
                 .onTapGesture {
                     viewModel.selectTemplate(template.id)
                 }
+            }
+
+            HStack(spacing: 8) {
+                Picker("Scope", selection: $viewModel.draftScope) {
+                    ForEach(TemplateScope.allCases, id: \.self) { scope in
+                        Text(scope.rawValue.capitalized).tag(scope)
+                    }
+                }
+                Picker("Type", selection: $viewModel.draftType) {
+                    ForEach(TemplateType.allCases, id: \.self) { type in
+                        Text(type.rawValue.capitalized).tag(type)
+                    }
+                }
+            }
+
+            TextField("Title Template", text: $viewModel.draftTitleTemplate)
+                .textFieldStyle(.roundedBorder)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    toolbarButton("Indent") { viewModel.applyToolbarToDraftBody(.indent) }
+                    toolbarButton("Outdent") { viewModel.applyToolbarToDraftBody(.outdent) }
+                    toolbarButton("H+") { viewModel.applyToolbarToDraftBody(.increaseHeading) }
+                    toolbarButton("Checklist") { viewModel.applyToolbarToDraftBody(.toggleChecklist) }
+                    toolbarButton("Divider") { viewModel.applyToolbarToDraftBody(.insertDivider(afterLine: nil)) }
+                }
+            }
+
+            TextEditor(text: $viewModel.draftBodyTemplate)
+                .frame(minHeight: 120)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                )
+                .onChange(of: viewModel.draftBodyTemplate) {
+                    viewModel.refreshPreview()
+                }
+
+            TextEditor(text: $viewModel.previewVariablesText)
+                .frame(minHeight: 80)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                )
+                .onChange(of: viewModel.previewVariablesText) {
+                    viewModel.refreshPreview()
+                }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Preview Title: \(viewModel.previewTitle)")
+                    .font(.headline)
+                Text(viewModel.previewBody)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             Button("Create Note From Selected") {
@@ -75,5 +124,10 @@ public struct TemplateStudioView: View {
             get: { viewModel.selectedTemplateId },
             set: { viewModel.selectTemplate($0) }
         )
+    }
+
+    private func toolbarButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .buttonStyle(.bordered)
     }
 }
