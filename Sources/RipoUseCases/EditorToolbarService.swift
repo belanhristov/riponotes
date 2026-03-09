@@ -5,6 +5,9 @@ public enum EditorCommand: Sendable {
     case outdent
     case increaseHeading
     case decreaseHeading
+    case toggleBold
+    case toggleItalic
+    case toggleUnderline
     case toggleChecklist
     case toggleBulletedList
     case toggleNumberedList
@@ -50,6 +53,21 @@ public struct EditorToolbarService: Sendable {
         case .decreaseHeading:
             for i in targetRange {
                 lines[i] = decreasedHeading(lines[i])
+            }
+
+        case .toggleBold:
+            for i in targetRange {
+                lines[i] = toggleWrapped(lines[i], marker: "**")
+            }
+
+        case .toggleItalic:
+            for i in targetRange {
+                lines[i] = toggleWrapped(lines[i], marker: "*")
+            }
+
+        case .toggleUnderline:
+            for i in targetRange {
+                lines[i] = toggleWrapped(lines[i], marker: "__")
             }
 
         case .toggleChecklist:
@@ -172,5 +190,12 @@ public struct EditorToolbarService: Sendable {
             return String(line.dropFirst())
         }
         return line
+    }
+
+    private func toggleWrapped(_ line: String, marker: String) -> String {
+        if line.hasPrefix(marker), line.hasSuffix(marker), line.count >= marker.count * 2 {
+            return String(line.dropFirst(marker.count).dropLast(marker.count))
+        }
+        return marker + line + marker
     }
 }

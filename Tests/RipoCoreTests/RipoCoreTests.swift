@@ -774,6 +774,12 @@ struct RipoCoreTests {
 
         let heading = try toolbar.apply(.increaseHeading, to: "Hello")
         #expect(heading == "# Hello")
+        let bold = try toolbar.apply(.toggleBold, to: "Hello")
+        #expect(bold == "**Hello**")
+        let italic = try toolbar.apply(.toggleItalic, to: "Hello")
+        #expect(italic == "*Hello*")
+        let underline = try toolbar.apply(.toggleUnderline, to: "Hello")
+        #expect(underline == "__Hello__")
 
         let divider = try toolbar.apply(.insertDivider(afterLine: 1), to: "A\nB")
         #expect(divider == "A\n---\nB")
