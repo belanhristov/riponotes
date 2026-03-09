@@ -1,0 +1,112 @@
+import Foundation
+import RipoDomain
+
+public enum InMemoryError: Error {
+    case alreadyExists
+}
+
+public actor InMemoryNoteRepository: NoteRepository {
+    private var notes: [UUID: Note] = [:]
+
+    public init() {}
+
+    public func create(_ note: Note) async throws {
+        guard notes[note.id] == nil else {
+            throw InMemoryError.alreadyExists
+        }
+        notes[note.id] = note
+    }
+
+    public func update(_ note: Note) async throws {
+        notes[note.id] = note
+    }
+
+    public func softDelete(noteId: UUID, deletedAt: Date) async throws {
+        guard var note = notes[noteId] else { return }
+        note.status = .deleted
+        note.deletedAt = deletedAt
+        note.updatedAt = deletedAt
+        note.version += 1
+        note.syncState = .pending
+        notes[note.id] = note
+    }
+
+    public func note(by id: UUID) async throws -> Note? {
+        notes[id]
+    }
+
+    public func inboxNotes(ownerUserId: UUID) async throws -> [Note] {
+        notes.values
+            .filter { $0.ownerUserId == ownerUserId && $0.folderId == nil && $0.status == .active }
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+    }
+
+    public func search(ownerUserId: UUID, query: String) async throws -> [Note] {
+        let q = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return [] }
+
+        return notes.values
+            .filter {
+                $0.ownerUserId == ownerUserId
+                    && $0.status == .active
+                    && (
+                        $0.title.lowercased().contains(q)
+                            || $0.plainTextBody.lowercased().contains(q)
+                            || $0.tags.contains(where: { $0.lowercased().contains(q) })
+                    )
+            }
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+    }
+}
+
+public actor InMemoryReminderRepository: ReminderRepository {
+    private var reminders: [UUID: Reminder] = [:]
+
+    public init() {}
+
+    public func upsert(_ reminder: Reminder) async throws {
+        reminders[reminder.id] = reminder
+    }
+
+    public func reminders(for noteId: UUID) async throws -> [Reminder] {
+        reminders.values
+            .filter { $0.noteId == noteId }
+            .sorted(by: { $0.triggerAt < $1.triggerAt })
+    }
+}
+
+public actor InMemoryReminderScheduler: ReminderScheduler {
+    private var scheduled: [UUID: Reminder] = [:]
+
+    public init() {}
+
+    public func schedule(_ reminder: Reminder) async throws {
+        scheduled[reminder.id] = reminder
+    }
+
+    public func cancel(reminderId: UUID) async throws {
+        scheduled.removeValue(forKey: reminderId)
+    }
+
+    public func scheduledReminder(reminderId: UUID) async -> Reminder? {
+        scheduled[reminderId]
+    }
+}
+
+public actor InMemorySyncEngine: SyncEngine {
+    private var queue: [SyncJob] = []
+
+    public init() {}
+
+    public func enqueue(_ job: SyncJob) async throws {
+        queue.append(job)
+    }
+
+    public func pendingJobs() async throws -> [SyncJob] {
+        queue
+    }
+
+    public func markProcessed(_ jobId: UUID) async throws {
+        queue.removeAll(where: { $0.id == jobId })
+    }
+}
