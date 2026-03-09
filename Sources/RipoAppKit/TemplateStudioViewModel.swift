@@ -15,22 +15,30 @@ public final class TemplateStudioViewModel: ObservableObject {
     @Published public private(set) var previewTitle: String = ""
     @Published public private(set) var previewBody: String = ""
     @Published public var previewVariablesText: String = "title=Quick Start\nbody=Start writing..."
+    @Published public private(set) var templateAttachments: [Attachment] = []
+    @Published public var newAttachmentPath: String = ""
 
     private let ownerUserId: UUID
     private let templateRepository: TemplateRepository
     private let templateEngine: TemplateEngineService
     private let toolbarViewModel: EditorToolbarViewModel
+    private let attachmentRepository: AttachmentRepository?
+    private let attachmentService: AttachmentService?
 
     public init(
         ownerUserId: UUID,
         templateRepository: TemplateRepository,
         templateEngine: TemplateEngineService,
-        toolbarViewModel: EditorToolbarViewModel = EditorToolbarViewModel()
+        toolbarViewModel: EditorToolbarViewModel = EditorToolbarViewModel(),
+        attachmentRepository: AttachmentRepository? = nil,
+        attachmentService: AttachmentService? = nil
     ) {
         self.ownerUserId = ownerUserId
         self.templateRepository = templateRepository
         self.templateEngine = templateEngine
         self.toolbarViewModel = toolbarViewModel
+        self.attachmentRepository = attachmentRepository
+        self.attachmentService = attachmentService
     }
 
     public func load(scope: TemplateScope? = nil) async {
@@ -41,6 +49,7 @@ public final class TemplateStudioViewModel: ObservableObject {
             }
             hydrateDraftFromSelection()
             refreshPreview()
+            await loadSelectedTemplateAttachments()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -61,6 +70,7 @@ public final class TemplateStudioViewModel: ObservableObject {
             selectedTemplateId = template.id
             hydrateDraftFromSelection()
             refreshPreview()
+            await loadSelectedTemplateAttachments()
         } catch {
             errorMessage = String(describing: error)
         }
@@ -74,6 +84,7 @@ public final class TemplateStudioViewModel: ObservableObject {
             self.selectedTemplateId = cloned.id
             hydrateDraftFromSelection()
             refreshPreview()
+            await loadSelectedTemplateAttachments()
         } catch {
             errorMessage = String(describing: error)
         }
@@ -94,6 +105,7 @@ public final class TemplateStudioViewModel: ObservableObject {
             self.selectedTemplateId = selectedTemplateId
             hydrateDraftFromSelection()
             refreshPreview()
+            await loadSelectedTemplateAttachments()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -121,6 +133,7 @@ public final class TemplateStudioViewModel: ObservableObject {
         selectedTemplateId = id
         hydrateDraftFromSelection()
         refreshPreview()
+        Task { await loadSelectedTemplateAttachments() }
     }
 
     public func applyToolbarToDraftBody(_ command: EditorCommand, lineRange: ClosedRange<Int>? = nil) {
@@ -141,6 +154,33 @@ public final class TemplateStudioViewModel: ObservableObject {
         )
         previewTitle = preview.title
         previewBody = preview.body
+    }
+
+    public func addImageToSelectedTemplate() async {
+        guard let selectedTemplateId,
+              let attachmentService else { return }
+        do {
+            _ = try await attachmentService.addImageToTemplate(
+                templateId: selectedTemplateId,
+                localPath: newAttachmentPath
+            )
+            newAttachmentPath = ""
+            await loadSelectedTemplateAttachments()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func removeAttachment(_ attachmentId: UUID) async {
+        guard let attachmentService else { return }
+        do {
+            try await attachmentService.removeAttachment(attachmentId)
+            await loadSelectedTemplateAttachments()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
     }
 
     private func hydrateDraftFromSelection() {
@@ -168,5 +208,23 @@ public final class TemplateStudioViewModel: ObservableObject {
             }
         }
         return output
+    }
+
+    private func loadSelectedTemplateAttachments() async {
+        guard let attachmentRepository,
+              let selectedTemplateId else
+        {
+            templateAttachments = []
+            return
+        }
+
+        do {
+            templateAttachments = try await attachmentRepository.attachments(
+                ownerType: .template,
+                ownerId: selectedTemplateId
+            )
+        } catch {
+            errorMessage = String(describing: error)
+        }
     }
 }

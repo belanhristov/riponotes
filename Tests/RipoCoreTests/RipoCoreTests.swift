@@ -310,6 +310,8 @@ struct RipoCoreTests {
         let templateRepo = InMemoryTemplateRepository()
         let noteRepo = InMemoryNoteRepository()
         let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
         let engine = TemplateEngineService(
             templateRepository: templateRepo,
             noteRepository: noteRepo,
@@ -318,7 +320,9 @@ struct RipoCoreTests {
         let vm = TemplateStudioViewModel(
             ownerUserId: userId,
             templateRepository: templateRepo,
-            templateEngine: engine
+            templateEngine: engine,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
         )
 
         vm.draftName = "Daily Journal"
@@ -337,6 +341,16 @@ struct RipoCoreTests {
         vm.refreshPreview()
         #expect(vm.previewBody.contains("Place: Sahil"))
         await vm.saveSelectedTemplateEdits()
+
+        vm.newAttachmentPath = "/tmp/template-cover.jpg"
+        await vm.addImageToSelectedTemplate()
+        #expect(vm.templateAttachments.count == 1)
+        #expect(vm.templateAttachments.first?.localPath == "/tmp/template-cover.jpg")
+
+        if let image = vm.templateAttachments.first {
+            await vm.removeAttachment(image.id)
+        }
+        #expect(vm.templateAttachments.isEmpty)
 
         await vm.cloneSelectedTemplate(newName: "Daily Journal Copy")
         #expect(vm.templates.count == 2)

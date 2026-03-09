@@ -97,6 +97,33 @@ public struct TemplateStudioView: View {
                     .foregroundStyle(.secondary)
             }
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Template Images")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    TextField("Image path (/tmp/example.jpg)", text: $viewModel.newAttachmentPath)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Add Image") {
+                        Task { await viewModel.addImageToSelectedTemplate() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                ForEach(viewModel.templateAttachments) { attachment in
+                    HStack {
+                        Text(attachment.localPath)
+                            .lineLimit(1)
+                            .font(.footnote)
+                        Spacer()
+                        Button("Remove") {
+                            Task { await viewModel.removeAttachment(attachment.id) }
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+
             Button("Create Note From Selected") {
                 Task {
                     _ = await viewModel.createNoteFromSelectedTemplate(
