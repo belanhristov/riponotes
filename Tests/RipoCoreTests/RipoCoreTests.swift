@@ -823,4 +823,15 @@ struct RipoCoreTests {
         #expect(cachedQuote.source == .cached)
         #expect(cachedQuote.rate == 0.91)
     }
+
+    @Test
+    func travelWorkspaceFxAgeAndStaleCalculations() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let tenMinutesAgo = now.addingTimeInterval(-600)
+        let thirtyHoursAgo = now.addingTimeInterval(-(30 * 60 * 60))
+
+        #expect(TravelWorkspaceViewModel.fxAgeMinutes(quotedAt: tenMinutesAgo, now: now) == 10)
+        #expect(TravelWorkspaceViewModel.fxIsStale(quotedAt: tenMinutesAgo, now: now) == false)
+        #expect(TravelWorkspaceViewModel.fxIsStale(quotedAt: thirtyHoursAgo, now: now) == true)
+    }
 }

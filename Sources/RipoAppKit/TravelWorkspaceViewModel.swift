@@ -276,4 +276,12 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             errorMessage = String(describing: error)
         }
     }
+
+    public nonisolated static func fxAgeMinutes(quotedAt: Date, now: Date = .now) -> Int {
+        max(0, Int(now.timeIntervalSince(quotedAt) / 60.0))
+    }
+
+    public nonisolated static func fxIsStale(quotedAt: Date, now: Date = .now, thresholdHours: Double = 24) -> Bool {
+        now.timeIntervalSince(quotedAt) > thresholdHours * 60.0 * 60.0
+    }
 }

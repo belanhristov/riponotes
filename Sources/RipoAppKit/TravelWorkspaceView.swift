@@ -167,6 +167,8 @@ public struct TravelWorkspaceView: View {
             .font(.footnote)
 
             if let fx = viewModel.fxQuote {
+                let ageMinutes = TravelWorkspaceViewModel.fxAgeMinutes(quotedAt: fx.quotedAt)
+                let isStale = TravelWorkspaceViewModel.fxIsStale(quotedAt: fx.quotedAt)
                 HStack {
                     Text("FX")
                         .font(.caption)
@@ -179,9 +181,14 @@ public struct TravelWorkspaceView: View {
                     Text(fx.source == .cached ? "cached" : "live")
                         .font(.caption2)
                         .foregroundStyle(fx.source == .cached ? .orange : .green)
-                    Text("(\(fx.quotedAt.formatted(date: .abbreviated, time: .shortened)))")
+                    Text("updated \(ageMinutes)m ago")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                    if isStale {
+                        Text("stale")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
 
