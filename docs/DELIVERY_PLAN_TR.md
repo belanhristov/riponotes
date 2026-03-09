@@ -83,6 +83,13 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - Auth gate + session restore + sign-out
 - Email/password ve “şifremi unuttum” sadece plan (kapalı flag)
 
+16. Travel Pro Benchmark Wave (Faz 3)
+- Reservation import (TripIt-style)
+- Transport comparator (Rome2Rio-style)
+- Price watch/drop alerts (Hopper-style)
+- Smart packing engine (PackPoint-style)
+- Offline trip card + estimate vs actual spend
+
 ## Karar Kriteri (Yeni özellik geldiğinde)
 
 - Kullanıcı etkisi (yüksek/orta/düşük)

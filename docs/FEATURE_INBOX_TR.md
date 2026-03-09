@@ -48,5 +48,12 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-023 | Packr-benzeri akıllı valiz şablonları | triaged | yüksek | M | Faz 3 | Destinasyon/süre/hava durumuna göre otomatik packing önerileri + kategorik valiz şablonları. |
 | F-024 | Elk-benzeri sade hedef ülke kur görünümü | triaged | yüksek | M | Faz 3 | Tüm kurlar yerine sadece seyahat edilen ülke kuru + kişisel harcama profili dönüşümü. |
 | F-025 | Kişisel harcama profili (öğün/içecek/ulaşım) | in_progress | yüksek | M | Faz 3 | Expense profile modeli + budget estimate from profile + Travel workspace UI formu eklendi; gerçek kur API bağlama ve UX polish sırada. |
+| F-028 | Rezervasyon import (TripIt tarzı) | triaged | yüksek | L | Faz 3 | Email forward ile uçuş/otel import v1, sonra inbox sync entegrasyonu. |
+| F-029 | Ulaşım karşılaştırma (Rome2Rio tarzı) | triaged | yüksek | L | Faz 3 | Uçak/tren/otobüs/ferry seçeneklerini süre/fiyat bazlı kıyaslama. |
+| F-030 | Fiyat izleme ve düşüş alarmı (Hopper tarzı) | triaged | yüksek | L | Faz 3 | Flight/hotel için watchlist ve fiyat düşüş bildirimleri. |
+| F-031 | Akıllı packing öneri motoru (PackPoint+) | triaged | yüksek | M | Faz 3 | Hava + aktivite + gün sayısına göre otomatik valiz listesi. |
+| F-032 | Şehir bazlı hazır itinerary şablonları (Visit A City+) | triaged | orta | M | Faz 3 | Popüler destinasyonlar için optimize günlük plan başlangıçları. |
+| F-033 | Harcama takip (estimate vs actual) + split | triaged | yüksek | M | Faz 3 | Kişi/grup harcama takibi ve borç paylaşımı. |
+| F-034 | Offline trip card | triaged | yüksek | M | Faz 3 | İnternet yokken kritik trip bilgilerine erişim. |
 | F-026 | Apple + Google social login (ilk sürüm) | in_progress | yüksek | M | Faz 1-2 | İlk sürüm auth yöntemi Apple/Google ile sınırlandı; session yönetimi ve auth gate wiring sürüyor. |
 | F-027 | Email/password + şifremi unuttum | parked | orta | M | Faz 3+ | Sadece plan olarak tutulacak; ilk sürümde kapalı (feature flag). |
