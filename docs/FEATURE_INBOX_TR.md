@@ -51,7 +51,7 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-028 | Rezervasyon import (TripIt tarzı) | triaged | yüksek | L | Faz 3 | Email forward ile uçuş/otel import v1, sonra inbox sync entegrasyonu. |
 | F-029 | Ulaşım karşılaştırma (Rome2Rio tarzı) | triaged | yüksek | L | Faz 3 | Uçak/tren/otobüs/ferry seçeneklerini süre/fiyat bazlı kıyaslama. |
 | F-030 | Fiyat izleme ve düşüş alarmı (Hopper tarzı) | triaged | yüksek | L | Faz 3 | Flight/hotel için watchlist ve fiyat düşüş bildirimleri. |
-| F-031 | Akıllı packing öneri motoru (PackPoint+) | triaged | yüksek | M | Faz 3 | Hava + aktivite + gün sayısına göre otomatik valiz listesi. |
+| F-031 | Akıllı packing öneri motoru (PackPoint+) | in_progress | yüksek | M | Faz 3 | SmartPackingService (hava+aktivite+gün+laundry+traveler) + Travel workspace Smart Packing aksiyonu + test eklendi. |
 | F-032 | Şehir bazlı hazır itinerary şablonları (Visit A City+) | triaged | orta | M | Faz 3 | Popüler destinasyonlar için optimize günlük plan başlangıçları. |
 | F-033 | Harcama takip (estimate vs actual) + split | triaged | yüksek | M | Faz 3 | Kişi/grup harcama takibi ve borç paylaşımı. |
 | F-034 | Offline trip card | triaged | yüksek | M | Faz 3 | İnternet yokken kritik trip bilgilerine erişim. |

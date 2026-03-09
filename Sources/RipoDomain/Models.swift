@@ -112,6 +112,15 @@ public enum PackingCategory: String, Codable, Sendable, CaseIterable {
     case custom
 }
 
+public enum TravelActivity: String, Codable, Sendable, CaseIterable {
+    case beach
+    case business
+    case cityWalk
+    case hiking
+    case nightlife
+    case winterSports
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider

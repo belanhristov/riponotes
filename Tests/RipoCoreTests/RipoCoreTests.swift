@@ -654,7 +654,13 @@ struct RipoCoreTests {
             currencyRateProvider: fx,
             weatherProvider: weather
         )
-        let vm = TravelWorkspaceViewModel(ownerUserId: userId, tripRepository: tripRepo, planner: planner)
+        let smartPacking = SmartPackingService(tripRepository: tripRepo)
+        let vm = TravelWorkspaceViewModel(
+            ownerUserId: userId,
+            tripRepository: tripRepo,
+            planner: planner,
+            smartPackingService: smartPacking
+        )
 
         vm.draftTitle = "Paris Trip"
         vm.draftOrigin = "Istanbul"
@@ -703,5 +709,47 @@ struct RipoCoreTests {
             #expect(estimate.dailyEstimate == 90 * estimate.fxRateUsed)
             #expect(estimate.currency == "EUR")
         }
+
+        await vm.generateSmartPacking(
+            weather: .sunny,
+            activities: [.beach, .cityWalk],
+            travelers: 1,
+            laundryAccess: false
+        )
+        #expect(vm.packingItems.count > 1)
+        #expect(vm.packingItems.contains(where: { $0.text == "Swimsuit" }))
+    }
+
+    @Test
+    func smartPackingServiceGeneratesPackPointLikeEssentials() async throws {
+        let tripRepo = InMemoryTripRepository()
+        let userId = UUID()
+        let trip = Trip(
+            ownerUserId: userId,
+            title: "Antalya",
+            origin: "Istanbul",
+            destination: "Antalya",
+            startDate: Date(timeIntervalSince1970: 2_300_000_000),
+            endDate: Date(timeIntervalSince1970: 2_300_000_000 + 60 * 60 * 24 * 3),
+            baseCurrency: "USD",
+            targetCurrency: "TRY"
+        )
+        try await tripRepo.upsertTrip(trip)
+
+        let service = SmartPackingService(tripRepository: tripRepo)
+        let saved = try await service.generateAndSave(
+            tripId: trip.id,
+            config: SmartPackingConfig(
+                weather: .rainy,
+                activities: [.beach, .hiking],
+                travelers: 1,
+                laundryAccess: false
+            )
+        )
+
+        #expect(saved.contains(where: { $0.text == "Passport" && $0.isCritical }))
+        #expect(saved.contains(where: { $0.text == "Umbrella" }))
+        #expect(saved.contains(where: { $0.text == "Swimsuit" }))
+        #expect(saved.contains(where: { $0.text == "Hiking Shoes" }))
     }
 }

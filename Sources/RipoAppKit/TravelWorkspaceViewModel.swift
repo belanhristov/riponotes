@@ -32,11 +32,18 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     private let ownerUserId: UUID
     private let tripRepository: TripRepository
     private let planner: TravelPlannerService
+    private let smartPackingService: SmartPackingService?
 
-    public init(ownerUserId: UUID, tripRepository: TripRepository, planner: TravelPlannerService) {
+    public init(
+        ownerUserId: UUID,
+        tripRepository: TripRepository,
+        planner: TravelPlannerService,
+        smartPackingService: SmartPackingService? = nil
+    ) {
         self.ownerUserId = ownerUserId
         self.tripRepository = tripRepository
         self.planner = planner
+        self.smartPackingService = smartPackingService
     }
 
     public func loadTrips() async {
@@ -207,6 +214,31 @@ public final class TravelWorkspaceViewModel: ObservableObject {
                 latitude: latitude,
                 longitude: longitude
             )
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func generateSmartPacking(
+        weather: WeatherCondition,
+        activities: [TravelActivity],
+        travelers: Int = 1,
+        laundryAccess: Bool = false
+    ) async {
+        guard let selectedTripId,
+              let smartPackingService else { return }
+        do {
+            _ = try await smartPackingService.generateAndSave(
+                tripId: selectedTripId,
+                config: SmartPackingConfig(
+                    weather: weather,
+                    activities: activities,
+                    travelers: travelers,
+                    laundryAccess: laundryAccess
+                )
+            )
+            await loadSelectedTripDetails()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)

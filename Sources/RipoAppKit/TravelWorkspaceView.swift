@@ -95,6 +95,17 @@ public struct TravelWorkspaceView: View {
                     Task { await viewModel.addPacking(text: packingText, category: .clothes, quantity: 1, isCritical: false) }
                 }
                 .buttonStyle(.bordered)
+                Button("Smart Packing (PackPoint)") {
+                    Task {
+                        await viewModel.generateSmartPacking(
+                            weather: .sunny,
+                            activities: [.beach, .cityWalk],
+                            travelers: 1,
+                            laundryAccess: false
+                        )
+                    }
+                }
+                .buttonStyle(.bordered)
             }
             .textFieldStyle(.roundedBorder)
 
