@@ -5,7 +5,7 @@ Durum etiketleri: `todo`, `in_progress`, `done`
 ## Epic 1: App Foundation
 
 ### Task 1.1 - Proje iskeleti
-- Durum: `todo`
+- Durum: `in_progress`
 - Hedef: iOS + macOS ortak SwiftUI app shell.
 - Kabul kriteri:
   - App açılışta Auth Gate ve Main Shell arasında geçiş yapar.
@@ -28,7 +28,7 @@ Durum etiketleri: `todo`, `in_progress`, `done`
   - Soft delete ile not geri çağrılabilir.
 
 ### Task 2.2 - Inbox + Note editor
-- Durum: `todo`
+- Durum: `in_progress`
 - Hedef: Brain Dump hızında not üretimi.
 - Kabul kriteri:
   - Uygulama açıldıktan sonra 2 dokunuşta not kaydı.

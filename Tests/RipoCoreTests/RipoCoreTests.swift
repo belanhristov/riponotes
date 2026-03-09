@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import RipoAppKit
 @testable import RipoData
 @testable import RipoDomain
 @testable import RipoUseCases
@@ -64,5 +65,44 @@ struct RipoCoreTests {
         #expect(flags[.aiSummary] == false)
         #expect(flags[.mailCaptureAdvanced] == false)
         #expect(flags[.androidSyncCompat] == true)
+    }
+
+    @MainActor
+    @Test
+    func inboxViewModelCreatesQuickNoteAndSelectsIt() async throws {
+        let repo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let userId = UUID()
+
+        let quickNote = QuickNoteEngine(noteRepository: repo, syncEngine: sync)
+        let vm = InboxViewModel(ownerUserId: userId, noteRepository: repo, quickNoteEngine: quickNote)
+
+        let created = try await vm.addQuickNote(text: "Plan weekend walk", source: .manual)
+
+        #expect(vm.notes.count == 1)
+        #expect(vm.selectedNoteId == created.id)
+        #expect(vm.notes.first?.title == "Plan weekend walk")
+    }
+
+    @MainActor
+    @Test
+    func noteEditorViewModelCreatesDraftAndSavesBody() async throws {
+        let repo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let userId = UUID()
+
+        let service = NoteEditorService(noteRepository: repo, syncEngine: sync)
+        let vm = NoteEditorViewModel(ownerUserId: userId, noteRepository: repo, editorService: service)
+
+        try await vm.open(noteId: nil)
+        vm.title = ""
+        vm.body = "Daily reflection\nToday I learned..."
+        let saved = try await vm.save()
+
+        #expect(saved.title == "Daily reflection")
+        #expect(saved.plainTextBody.contains("Today I learned"))
+
+        let jobs = try await sync.pendingJobs()
+        #expect(jobs.count == 2) // create draft + update on save
     }
 }

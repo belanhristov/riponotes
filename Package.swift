@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "RipoDomain", targets: ["RipoDomain"]),
         .library(name: "RipoData", targets: ["RipoData"]),
         .library(name: "RipoUseCases", targets: ["RipoUseCases"]),
+        .library(name: "RipoAppKit", targets: ["RipoAppKit"]),
         .library(name: "RipoCore", targets: ["RipoCore"])
     ],
     targets: [
@@ -25,12 +26,16 @@ let package = Package(
             dependencies: ["RipoDomain"]
         ),
         .target(
+            name: "RipoAppKit",
+            dependencies: ["RipoDomain", "RipoUseCases"]
+        ),
+        .target(
             name: "RipoCore",
-            dependencies: ["RipoDomain", "RipoData", "RipoUseCases"]
+            dependencies: ["RipoDomain", "RipoData", "RipoUseCases", "RipoAppKit"]
         ),
         .testTarget(
             name: "RipoCoreTests",
-            dependencies: ["RipoDomain", "RipoData", "RipoUseCases"]
+            dependencies: ["RipoDomain", "RipoData", "RipoUseCases", "RipoAppKit"]
         )
     ]
 )
