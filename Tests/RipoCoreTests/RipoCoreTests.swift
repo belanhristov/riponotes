@@ -280,4 +280,22 @@ struct RipoCoreTests {
         let afterDelete = try await repo.attachments(ownerType: .template, ownerId: templateId)
         #expect(afterDelete.isEmpty)
     }
+
+    @Test
+    func editorToolbarServiceAppliesCoreFormattingCommands() throws {
+        let toolbar = EditorToolbarService()
+        let input = "Title\nTask one\nTask two"
+
+        let indented = try toolbar.apply(.indent, to: input, lineRange: 2...3)
+        #expect(indented.contains("\n    Task one\n    Task two"))
+
+        let checklist = try toolbar.apply(.toggleChecklist, to: input, lineRange: 2...3)
+        #expect(checklist.contains("\n- [ ] Task one\n- [ ] Task two"))
+
+        let heading = try toolbar.apply(.increaseHeading, to: "Hello")
+        #expect(heading == "# Hello")
+
+        let divider = try toolbar.apply(.insertDivider(afterLine: 1), to: "A\nB")
+        #expect(divider == "A\n---\nB")
+    }
 }
