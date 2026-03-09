@@ -134,4 +134,29 @@ struct RipoCoreTests {
         #expect(afterDelete.isEmpty)
     }
     #endif
+
+    @Test
+    func quickCaptureFacadeCreatesWidgetAndMeetingNotes() async throws {
+        let repo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let engine = QuickNoteEngine(noteRepository: repo, syncEngine: sync)
+        let facade = QuickCaptureFacade(quickNoteEngine: engine)
+        let ownerUserId = UUID()
+
+        let widgetNote = try await facade.createWidgetQuickNote(
+            ownerUserId: ownerUserId,
+            text: "Buy coffee beans"
+        )
+        #expect(widgetNote.source == .widget)
+
+        let meetingNote = try await facade.createMeetingNoteFromIntent(
+            ownerUserId: ownerUserId,
+            title: "Sprint Planning",
+            participantNames: ["Ahmet", "Ayse"]
+        )
+        #expect(meetingNote.source == .siri)
+        #expect(meetingNote.plainTextBody.contains("Participants:"))
+        #expect(meetingNote.plainTextBody.contains("- Ahmet"))
+        #expect(meetingNote.plainTextBody.contains("- Ayse"))
+    }
 }

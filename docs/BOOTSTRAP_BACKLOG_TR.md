@@ -43,14 +43,14 @@ Durum etiketleri: `todo`, `in_progress`, `done`
 ## Epic 3: Quick Capture
 
 ### Task 3.1 - Widget quick add
-- Durum: `todo`
+- Durum: `in_progress`
 - Hedef: WidgetKit üzerinden hızlı not.
 - Kabul kriteri:
   - Widget aksiyonu local not oluşturur.
   - Oluşan not Inbox'ta görünür.
 
 ### Task 3.2 - App Intents create note
-- Durum: `todo`
+- Durum: `in_progress`
 - Hedef: Siri/App Shortcuts ile not oluşturma.
 - Kabul kriteri:
   - `CreateNoteIntent` text alır ve not yaratır.
