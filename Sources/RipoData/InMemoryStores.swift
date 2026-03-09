@@ -65,6 +65,41 @@ public actor InMemoryNoteRepository: NoteRepository {
     }
 }
 
+public actor InMemoryUserProfileRepository: UserProfileRepository {
+    private var profilesByUserId: [UUID: UserProfile] = [:]
+
+    public init() {}
+
+    public func upsert(_ profile: UserProfile) async throws {
+        profilesByUserId[profile.userId] = profile
+    }
+
+    public func profile(userId: UUID) async throws -> UserProfile? {
+        profilesByUserId[userId]
+    }
+
+    public func profile(username: String) async throws -> UserProfile? {
+        let key = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return profilesByUserId.values.first(where: { $0.username.lowercased() == key })
+    }
+}
+
+public actor InMemoryUserBadgeRepository: UserBadgeRepository {
+    private var badgesById: [UUID: UserBadge] = [:]
+
+    public init() {}
+
+    public func upsert(_ badge: UserBadge) async throws {
+        badgesById[badge.id] = badge
+    }
+
+    public func badges(userId: UUID) async throws -> [UserBadge] {
+        badgesById.values
+            .filter { $0.userId == userId }
+            .sorted(by: { $0.awardedAt > $1.awardedAt })
+    }
+}
+
 public actor InMemoryReminderRepository: ReminderRepository {
     private var reminders: [UUID: Reminder] = [:]
 

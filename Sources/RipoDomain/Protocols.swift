@@ -10,6 +10,17 @@ public protocol NoteRepository: Sendable {
     func search(ownerUserId: UUID, query: String) async throws -> [Note]
 }
 
+public protocol UserProfileRepository: Sendable {
+    func upsert(_ profile: UserProfile) async throws
+    func profile(userId: UUID) async throws -> UserProfile?
+    func profile(username: String) async throws -> UserProfile?
+}
+
+public protocol UserBadgeRepository: Sendable {
+    func upsert(_ badge: UserBadge) async throws
+    func badges(userId: UUID) async throws -> [UserBadge]
+}
+
 public protocol ReminderRepository: Sendable {
     func upsert(_ reminder: Reminder) async throws
     func reminders(for noteId: UUID) async throws -> [Reminder]

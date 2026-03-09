@@ -102,6 +102,13 @@ public enum SocialReactionType: String, Codable, Sendable, CaseIterable {
     case dislike
 }
 
+public enum UserBadgeType: String, Codable, Sendable, CaseIterable {
+    case rookieTraveler
+    case countryCollector
+    case storyteller
+    case crowdFavorite
+}
+
 public enum TripChecklistCategory: String, Codable, Sendable, CaseIterable {
     case documents
     case booking
@@ -152,6 +159,57 @@ public struct User: Identifiable, Codable, Sendable, Equatable {
         self.localeIdentifier = localeIdentifier
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+}
+
+public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID { userId }
+    public var userId: UUID
+    public var username: String
+    public var avatarPath: String?
+    public var bio: String?
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        userId: UUID,
+        username: String,
+        avatarPath: String? = nil,
+        bio: String? = nil,
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.userId = userId
+        self.username = username
+        self.avatarPath = avatarPath
+        self.bio = bio
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct UserBadge: Identifiable, Codable, Sendable, Equatable {
+    public let id: UUID
+    public var userId: UUID
+    public var type: UserBadgeType
+    public var title: String
+    public var description: String
+    public var awardedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        userId: UUID,
+        type: UserBadgeType,
+        title: String,
+        description: String,
+        awardedAt: Date = .now
+    ) {
+        self.id = id
+        self.userId = userId
+        self.type = type
+        self.title = title
+        self.description = description
+        self.awardedAt = awardedAt
     }
 }
 

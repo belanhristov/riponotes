@@ -561,6 +561,89 @@ struct RipoCoreTests {
         #expect(feed.first?.likeCount == 1)
     }
 
+    @Test
+    func userProfileServiceEnforcesUniqueUsernameAndAvatar() async throws {
+        let repo = InMemoryUserProfileRepository()
+        let service = UserProfileService(profileRepository: repo)
+        let userA = UUID()
+        let userB = UUID()
+
+        let profileA = try await service.upsertProfile(
+            userId: userA,
+            username: "ripo_traveler",
+            avatarPath: "/tmp/a.jpg",
+            bio: "Travel lover"
+        )
+        #expect(profileA.username == "ripo_traveler")
+        #expect(profileA.avatarPath == "/tmp/a.jpg")
+
+        do {
+            _ = try await service.upsertProfile(
+                userId: userB,
+                username: "ripo_traveler",
+                avatarPath: "/tmp/b.jpg"
+            )
+            Issue.record("Expected usernameTaken error")
+        } catch {
+            #expect(error as? UserProfileServiceError == .usernameTaken)
+        }
+    }
+
+    @Test
+    func badgeServiceAwardsTravelerAndSocialBadges() async throws {
+        let userId = UUID()
+        let tripRepo = InMemoryTripRepository()
+        let socialRepo = InMemorySocialRepository()
+        let badgeRepo = InMemoryUserBadgeRepository()
+        let socialService = SocialFeedService(repository: socialRepo)
+        let service = BadgeService(
+            tripRepository: tripRepo,
+            socialRepository: socialRepo,
+            badgeRepository: badgeRepo
+        )
+
+        let destinations = ["rome", "paris", "tokyo"]
+        for city in destinations {
+            let trip = Trip(
+                ownerUserId: userId,
+                title: city.capitalized,
+                origin: "IST",
+                destination: city,
+                startDate: Date(timeIntervalSince1970: 2_000_000_000),
+                endDate: Date(timeIntervalSince1970: 2_000_100_000),
+                baseCurrency: "USD",
+                targetCurrency: "EUR"
+            )
+            try await tripRepo.upsertTrip(trip)
+        }
+
+        var posts: [SocialPost] = []
+        for idx in 0..<5 {
+            let post = try await socialService.publishPost(
+                authorUserId: userId,
+                text: "post-\(idx)",
+                tags: ["travel"]
+            )
+            posts.append(post)
+        }
+
+        for idx in 0..<10 {
+            let post = posts[idx % posts.count]
+            _ = try await socialService.addComment(
+                postId: post.id,
+                authorUserId: UUID(),
+                text: "comment-\(idx)"
+            )
+        }
+
+        let awarded = try await service.awardEligibleBadges(userId: userId)
+        let types = Set(awarded.map(\.type))
+        #expect(types.contains(.rookieTraveler))
+        #expect(types.contains(.countryCollector))
+        #expect(types.contains(.storyteller))
+        #expect(types.contains(.crowdFavorite))
+    }
+
     @MainActor
     @Test
     func tagCloudViewModelFiltersByQuery() async throws {
