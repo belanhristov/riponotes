@@ -62,6 +62,16 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - Hava + lokasyona göre öneri motoru
 - Güvenlik/izin kuralları ve kullanıcı opt-in
 
+12. Template Studio + Rich Editor (Faz 2-3)
+- Not ve Journal için ayrı şablon yönetimi
+- Mevcut şablondan şablon türetme
+- Şablon/Not/Journal için resim ekleme
+- Üstte çok fonksiyonlu düzenleme barı (girinti, boyut, çizgi, biçim)
+
+13. Context-Aware AI Templates (Faz 3)
+- AI önerilen moddan tek adım yazma akışı
+- Hava + konum + kullanıcı moduna göre otomatik şablon üretimi
+
 ## Karar Kriteri (Yeni özellik geldiğinde)
 
 - Kullanıcı etkisi (yüksek/orta/düşük)
