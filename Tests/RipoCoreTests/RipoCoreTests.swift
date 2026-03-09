@@ -104,6 +104,10 @@ struct RipoCoreTests {
 
         let jobs = try await sync.pendingJobs()
         #expect(jobs.count == 2) // create draft + update on save
+
+        vm.body = "line1\nline2"
+        vm.applyToolbar(.indent, lineRange: 2...2)
+        #expect(vm.body == "line1\n    line2")
     }
 
     #if canImport(SwiftData)
