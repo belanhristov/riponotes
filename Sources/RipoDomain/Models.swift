@@ -650,6 +650,11 @@ public struct TripBudgetEstimate: Identifiable, Codable, Sendable, Equatable {
     }
 }
 
+public enum FxQuoteSource: String, Codable, Sendable, Equatable {
+    case live
+    case cached
+}
+
 public struct TripExpenseProfile: Codable, Sendable, Equatable {
     public var breakfastCost: Double
     public var lunchCost: Double

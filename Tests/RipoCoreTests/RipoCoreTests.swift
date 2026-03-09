@@ -6,6 +6,13 @@ import Testing
 @testable import RipoUseCases
 
 struct RipoCoreTests {
+    private struct FailingCurrencyRateProvider: CurrencyRateProvider {
+        func rate(from _: String, to _: String) async throws -> Double {
+            struct RateError: Error {}
+            throw RateError()
+        }
+    }
+
     @Test
     func quickNoteDefaultsToInboxAndQueuesSyncJob() async throws {
         let repo = InMemoryNoteRepository()
@@ -774,5 +781,46 @@ struct RipoCoreTests {
         let data = Data(json.utf8)
         let rate = try FrankfurterCurrencyRateProvider.parseRate(data: data, targetCurrency: "EUR")
         #expect(rate == 0.92)
+    }
+
+    @Test
+    func travelPlannerFallsBackToCachedFxQuoteWhenProviderFails() async throws {
+        let tripRepo = InMemoryTripRepository()
+        let cache = InMemoryFxQuoteCache()
+        let weather = InMemoryWeatherProvider(
+            snapshot: WeatherSnapshot(condition: .sunny, temperatureCelsius: 25, feelsLikeCelsius: 25)
+        )
+        let userId = UUID()
+        let trip = Trip(
+            ownerUserId: userId,
+            title: "Berlin",
+            origin: "IST",
+            destination: "BER",
+            startDate: Date(timeIntervalSince1970: 2_350_000_000),
+            endDate: Date(timeIntervalSince1970: 2_350_000_000 + 60 * 60 * 24),
+            baseCurrency: "USD",
+            targetCurrency: "EUR"
+        )
+        try await tripRepo.upsertTrip(trip)
+
+        let liveProvider = InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.91])
+        let livePlanner = TravelPlannerService(
+            tripRepository: tripRepo,
+            currencyRateProvider: liveProvider,
+            weatherProvider: weather,
+            fxQuoteCache: cache
+        )
+        let liveQuote = try await livePlanner.currentFxQuote(tripId: trip.id)
+        #expect(liveQuote.source == .live)
+
+        let failingPlanner = TravelPlannerService(
+            tripRepository: tripRepo,
+            currencyRateProvider: FailingCurrencyRateProvider(),
+            weatherProvider: weather,
+            fxQuoteCache: cache
+        )
+        let cachedQuote = try await failingPlanner.currentFxQuote(tripId: trip.id)
+        #expect(cachedQuote.source == .cached)
+        #expect(cachedQuote.rate == 0.91)
     }
 }

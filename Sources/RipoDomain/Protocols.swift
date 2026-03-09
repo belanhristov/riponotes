@@ -71,6 +71,11 @@ public protocol CurrencyRateProvider: Sendable {
     func rate(from baseCurrency: String, to targetCurrency: String) async throws -> Double
 }
 
+public protocol FxQuoteCache: Sendable {
+    func save(rate: Double, from baseCurrency: String, to targetCurrency: String, quotedAt: Date) async throws
+    func load(from baseCurrency: String, to targetCurrency: String) async throws -> (rate: Double, quotedAt: Date)?
+}
+
 public protocol TripRepository: Sendable {
     func upsertTrip(_ trip: Trip) async throws
     func trip(by id: UUID) async throws -> Trip?

@@ -31,4 +31,11 @@ public enum AppComposition {
         }
         return InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9, "USD_TRY": 36.0, "EUR_TRY": 40.0])
     }
+
+    public static func makeFxQuoteCache(useProductionAdapters: Bool) -> FxQuoteCache {
+        if useProductionAdapters {
+            return UserDefaultsFxQuoteCache()
+        }
+        return InMemoryFxQuoteCache()
+    }
 }

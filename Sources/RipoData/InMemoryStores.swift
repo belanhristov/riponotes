@@ -352,3 +352,17 @@ public actor InMemoryTripRepository: TripRepository {
         budgetByTripId[tripId]
     }
 }
+
+public actor InMemoryFxQuoteCache: FxQuoteCache {
+    private var storage: [String: (rate: Double, quotedAt: Date)] = [:]
+
+    public init() {}
+
+    public func save(rate: Double, from baseCurrency: String, to targetCurrency: String, quotedAt: Date) async throws {
+        storage["\(baseCurrency.uppercased())_\(targetCurrency.uppercased())"] = (rate: rate, quotedAt: quotedAt)
+    }
+
+    public func load(from baseCurrency: String, to targetCurrency: String) async throws -> (rate: Double, quotedAt: Date)? {
+        storage["\(baseCurrency.uppercased())_\(targetCurrency.uppercased())"]
+    }
+}

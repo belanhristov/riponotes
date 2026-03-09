@@ -13,12 +13,14 @@ public struct TripFxQuote: Sendable, Equatable {
     public var targetCurrency: String
     public var rate: Double
     public var quotedAt: Date
+    public var source: FxQuoteSource
 
-    public init(baseCurrency: String, targetCurrency: String, rate: Double, quotedAt: Date) {
+    public init(baseCurrency: String, targetCurrency: String, rate: Double, quotedAt: Date, source: FxQuoteSource) {
         self.baseCurrency = baseCurrency
         self.targetCurrency = targetCurrency
         self.rate = rate
         self.quotedAt = quotedAt
+        self.source = source
     }
 }
 
@@ -26,11 +28,18 @@ public struct TravelPlannerService: Sendable {
     private let tripRepository: TripRepository
     private let currencyRateProvider: CurrencyRateProvider
     private let weatherProvider: WeatherProvider
+    private let fxQuoteCache: FxQuoteCache?
 
-    public init(tripRepository: TripRepository, currencyRateProvider: CurrencyRateProvider, weatherProvider: WeatherProvider) {
+    public init(
+        tripRepository: TripRepository,
+        currencyRateProvider: CurrencyRateProvider,
+        weatherProvider: WeatherProvider,
+        fxQuoteCache: FxQuoteCache? = nil
+    ) {
         self.tripRepository = tripRepository
         self.currencyRateProvider = currencyRateProvider
         self.weatherProvider = weatherProvider
+        self.fxQuoteCache = fxQuoteCache
     }
 
     @discardableResult
@@ -213,12 +222,32 @@ public struct TravelPlannerService: Sendable {
 
     public func currentFxQuote(tripId: UUID, now: Date = .now) async throws -> TripFxQuote {
         guard let trip = try await tripRepository.trip(by: tripId) else { throw TravelPlannerError.tripNotFound }
-        let rate = try await currencyRateProvider.rate(from: trip.baseCurrency, to: trip.targetCurrency)
-        return TripFxQuote(
-            baseCurrency: trip.baseCurrency,
-            targetCurrency: trip.targetCurrency,
-            rate: rate,
-            quotedAt: now
-        )
+        do {
+            let rate = try await currencyRateProvider.rate(from: trip.baseCurrency, to: trip.targetCurrency)
+            try await fxQuoteCache?.save(
+                rate: rate,
+                from: trip.baseCurrency,
+                to: trip.targetCurrency,
+                quotedAt: now
+            )
+            return TripFxQuote(
+                baseCurrency: trip.baseCurrency,
+                targetCurrency: trip.targetCurrency,
+                rate: rate,
+                quotedAt: now,
+                source: .live
+            )
+        } catch {
+            if let cached = try await fxQuoteCache?.load(from: trip.baseCurrency, to: trip.targetCurrency) {
+                return TripFxQuote(
+                    baseCurrency: trip.baseCurrency,
+                    targetCurrency: trip.targetCurrency,
+                    rate: cached.rate,
+                    quotedAt: cached.quotedAt,
+                    source: .cached
+                )
+            }
+            throw error
+        }
     }
 }
