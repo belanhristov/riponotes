@@ -35,6 +35,12 @@ public actor InMemoryNoteRepository: NoteRepository {
         notes[id]
     }
 
+    public func activeNotes(ownerUserId: UUID) async throws -> [Note] {
+        notes.values
+            .filter { $0.ownerUserId == ownerUserId && $0.status == .active }
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+    }
+
     public func inboxNotes(ownerUserId: UUID) async throws -> [Note] {
         notes.values
             .filter { $0.ownerUserId == ownerUserId && $0.folderId == nil && $0.status == .active }
@@ -188,6 +194,10 @@ public actor InMemoryAttachmentRepository: AttachmentRepository {
         attachmentsById.values
             .filter { $0.ownerType == ownerType && $0.ownerId == ownerId }
             .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+
+    public func allAttachments() async throws -> [Attachment] {
+        attachmentsById.values.sorted(by: { $0.createdAt < $1.createdAt })
     }
 
     public func attachment(by id: UUID) async throws -> Attachment? {

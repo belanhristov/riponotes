@@ -78,6 +78,7 @@ public enum AttachmentType: String, Codable, Sendable {
 public enum AttachmentOwnerType: String, Codable, Sendable {
     case note
     case template
+    case trip
 }
 
 public enum WeatherCondition: String, Codable, Sendable, CaseIterable {
@@ -432,6 +433,7 @@ public struct Attachment: Identifiable, Codable, Sendable, Equatable {
     public var type: AttachmentType
     public var localPath: String
     public var remoteURL: String?
+    public var tags: Set<String>
     public var metadataJSON: String
     public var createdAt: Date
     public var updatedAt: Date
@@ -443,6 +445,7 @@ public struct Attachment: Identifiable, Codable, Sendable, Equatable {
         type: AttachmentType,
         localPath: String,
         remoteURL: String? = nil,
+        tags: Set<String> = [],
         metadataJSON: String = "{}",
         createdAt: Date = .now,
         updatedAt: Date = .now
@@ -453,6 +456,7 @@ public struct Attachment: Identifiable, Codable, Sendable, Equatable {
         self.type = type
         self.localPath = localPath
         self.remoteURL = remoteURL
+        self.tags = tags
         self.metadataJSON = metadataJSON
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -502,6 +506,7 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
     public var endDate: Date
     public var baseCurrency: String
     public var targetCurrency: String
+    public var tags: Set<String>
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -515,6 +520,7 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
         endDate: Date,
         baseCurrency: String,
         targetCurrency: String,
+        tags: Set<String> = [],
         createdAt: Date = .now,
         updatedAt: Date = .now
     ) {
@@ -527,8 +533,20 @@ public struct Trip: Identifiable, Codable, Sendable, Equatable {
         self.endDate = endDate
         self.baseCurrency = baseCurrency
         self.targetCurrency = targetCurrency
+        self.tags = tags
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+}
+
+public struct TagCloudItem: Codable, Sendable, Equatable, Identifiable {
+    public var id: String { tag }
+    public var tag: String
+    public var count: Int
+
+    public init(tag: String, count: Int) {
+        self.tag = tag
+        self.count = count
     }
 }
 

@@ -9,6 +9,7 @@ public enum AppSection: String, CaseIterable, Identifiable, Sendable {
     case people
     case calendar
     case search
+    case tags
     case settings
 
     public var id: String { rawValue }
@@ -23,6 +24,7 @@ public enum AppSection: String, CaseIterable, Identifiable, Sendable {
         case .people: return "People"
         case .calendar: return "Calendar"
         case .search: return "Search"
+        case .tags: return "Tags"
         case .settings: return "Settings"
         }
     }

@@ -46,6 +46,95 @@ public struct TravelWorkspaceView: View {
             }
             .frame(minHeight: 110)
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Trip Tags")
+                    .font(.headline)
+                HStack(spacing: 8) {
+                    TextField("Add trip tag", text: $viewModel.newTripTagText)
+                    Button("Add Tag") { Task { await viewModel.addTripTag() } }
+                        .buttonStyle(.bordered)
+                }
+                .textFieldStyle(.roundedBorder)
+                if !viewModel.selectedTripTags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(viewModel.selectedTripTags, id: \.self) { tag in
+                                HStack(spacing: 4) {
+                                    Text("#\(tag)")
+                                    Button("x") { Task { await viewModel.removeTripTag(tag) } }
+                                        .buttonStyle(.borderless)
+                                }
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.blue.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Trip Images")
+                    .font(.headline)
+                HStack(spacing: 8) {
+                    TextField("Image path (/tmp/trip.jpg)", text: $viewModel.newTripImagePath)
+                    Button("Add Image") { Task { await viewModel.addTripImage() } }
+                        .buttonStyle(.bordered)
+                }
+                .textFieldStyle(.roundedBorder)
+
+                ForEach(viewModel.tripAttachments) { attachment in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(attachment.localPath)
+                            .font(.footnote)
+                            .lineLimit(1)
+                        HStack(spacing: 8) {
+                            TextField("Image tag", text: Binding(
+                                get: { viewModel.tripAttachmentTagInputs[attachment.id] ?? "" },
+                                set: { viewModel.tripAttachmentTagInputs[attachment.id] = $0 }
+                            ))
+                            Button("Add") { Task { await viewModel.addTagToTripImage(attachmentId: attachment.id) } }
+                                .buttonStyle(.bordered)
+                        }
+                        .textFieldStyle(.roundedBorder)
+
+                        if !attachment.tags.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 6) {
+                                    ForEach(attachment.tags.sorted(), id: \.self) { tag in
+                                        HStack(spacing: 4) {
+                                            Text("#\(tag)")
+                                            Button("x") {
+                                                Task { await viewModel.removeTagFromTripImage(attachmentId: attachment.id, tag: tag) }
+                                            }
+                                            .buttonStyle(.borderless)
+                                        }
+                                        .font(.caption2)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.orange.opacity(0.14))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            }
+                        }
+
+                        HStack(spacing: 8) {
+                            Button("Share X") {
+                                Task { await viewModel.previewShare(attachmentId: attachment.id, platform: .x) }
+                            }
+                            .buttonStyle(.bordered)
+                            Button("Share Instagram") {
+                                Task { await viewModel.previewShare(attachmentId: attachment.id, platform: .instagram) }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+            }
+
             HStack(spacing: 8) {
                 TextField("Flight Provider", text: $flightProvider)
                 TextField("Code", text: $flightCode)
@@ -196,6 +285,27 @@ public struct TravelWorkspaceView: View {
                 Text(errorMessage)
                     .font(.footnote)
                     .foregroundStyle(.red)
+            }
+
+            if let preview = viewModel.socialSharePreview {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Share Preview (\(preview.platform.rawValue))")
+                        .font(.headline)
+                    Text(preview.message)
+                        .font(.footnote)
+                    if let shareURL = preview.shareURL {
+                        Text(shareURL)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                )
             }
         }
         .padding()

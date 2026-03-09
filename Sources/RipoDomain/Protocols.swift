@@ -5,6 +5,7 @@ public protocol NoteRepository: Sendable {
     func update(_ note: Note) async throws
     func softDelete(noteId: UUID, deletedAt: Date) async throws
     func note(by id: UUID) async throws -> Note?
+    func activeNotes(ownerUserId: UUID) async throws -> [Note]
     func inboxNotes(ownerUserId: UUID) async throws -> [Note]
     func search(ownerUserId: UUID, query: String) async throws -> [Note]
 }
@@ -44,6 +45,7 @@ public protocol AttachmentRepository: Sendable {
     func upsert(_ attachment: Attachment) async throws
     func delete(attachmentId: UUID) async throws
     func attachments(ownerType: AttachmentOwnerType, ownerId: UUID) async throws -> [Attachment]
+    func allAttachments() async throws -> [Attachment]
     func attachment(by id: UUID) async throws -> Attachment?
 }
 

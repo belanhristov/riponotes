@@ -55,5 +55,8 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-032 | Şehir bazlı hazır itinerary şablonları (Visit A City+) | triaged | orta | M | Faz 3 | Popüler destinasyonlar için optimize günlük plan başlangıçları. |
 | F-033 | Harcama takip (estimate vs actual) + split | triaged | yüksek | M | Faz 3 | Kişi/grup harcama takibi ve borç paylaşımı. |
 | F-034 | Offline trip card | triaged | yüksek | M | Faz 3 | İnternet yokken kritik trip bilgilerine erişim. |
+| F-035 | Not/Günlük/Travel etiketleme | in_progress | yüksek | M | Faz 2-3 | Note + journal entry + trip + image (attachment) düzeyinde tag ekle/çıkar akışı eklendi; öneri sistemi ve bulk tag işlemleri sırada. |
+| F-036 | Tag Cloud + etiket sayımı | in_progress | yüksek | M | Faz 2-3 | TagCloud modeli + TaggingService sayım mantığı + TagCloud view/viewmodel eklendi; uygulama ana navigasyona bağlama ve gelişmiş filtreler sırada. |
+| F-037 | Travel image sosyal paylaşım (X/Instagram) | in_progress | orta | M | Faz 3 | Sosyal paylaşım payload servisi + hashtag üretimi + Travel workspace paylaşım önizleme akışı eklendi; gerçek platform paylaşım entegrasyonu sırada. |
 | F-026 | Apple + Google social login (ilk sürüm) | in_progress | yüksek | M | Faz 1-2 | İlk sürüm auth yöntemi Apple/Google ile sınırlandı; session yönetimi ve auth gate wiring sürüyor. |
 | F-027 | Email/password + şifremi unuttum | parked | orta | M | Faz 3+ | Sadece plan olarak tutulacak; ilk sürümde kapalı (feature flag). |

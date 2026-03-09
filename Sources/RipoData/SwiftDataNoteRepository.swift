@@ -133,6 +133,20 @@ public final class SwiftDataNoteRepository: NoteRepository, @unchecked Sendable 
         }
     }
 
+    public func activeNotes(ownerUserId: UUID) async throws -> [Note] {
+        try await MainActor.run {
+            let context = ModelContext(modelContainer)
+            let descriptor = FetchDescriptor<NoteRecord>(
+                predicate: #Predicate { $0.ownerUserId == ownerUserId },
+                sortBy: [SortDescriptor(\NoteRecord.updatedAt, order: .reverse)]
+            )
+            return try context
+                .fetch(descriptor)
+                .filter { $0.statusRaw == NoteStatus.active.rawValue }
+                .map { $0.asDomain }
+        }
+    }
+
     public func inboxNotes(ownerUserId: UUID) async throws -> [Note] {
         try await MainActor.run {
             let context = ModelContext(modelContainer)

@@ -56,6 +56,27 @@ public struct AttachmentService: Sendable {
     }
 
     @discardableResult
+    public func addImageToTrip(
+        tripId: UUID,
+        localPath: String,
+        metadataJSON: String = "{}",
+        now: Date = .now
+    ) async throws -> Attachment {
+        try validatePath(localPath)
+        let attachment = Attachment(
+            ownerType: .trip,
+            ownerId: tripId,
+            type: .image,
+            localPath: localPath,
+            metadataJSON: metadataJSON,
+            createdAt: now,
+            updatedAt: now
+        )
+        try await attachmentRepository.upsert(attachment)
+        return attachment
+    }
+
+    @discardableResult
     public func updateMetadata(
         attachmentId: UUID,
         metadataJSON: String,

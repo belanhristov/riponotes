@@ -11,6 +11,10 @@ public final class NoteEditorViewModel: ObservableObject {
     @Published public private(set) var noteAttachments: [Attachment] = []
     @Published public var newAttachmentPath: String = ""
     @Published public private(set) var attachmentError: String?
+    @Published public private(set) var noteTags: [String] = []
+    @Published public var newNoteTagText: String = ""
+    @Published public var attachmentTagInputs: [UUID: String] = [:]
+    @Published public private(set) var tagError: String?
 
     private let ownerUserId: UUID
     private let noteRepository: NoteRepository
@@ -18,6 +22,7 @@ public final class NoteEditorViewModel: ObservableObject {
     private let toolbarViewModel: EditorToolbarViewModel
     private let attachmentRepository: AttachmentRepository?
     private let attachmentService: AttachmentService?
+    private let taggingService: TaggingService?
 
     public init(
         ownerUserId: UUID,
@@ -25,7 +30,8 @@ public final class NoteEditorViewModel: ObservableObject {
         editorService: NoteEditorService,
         toolbarViewModel: EditorToolbarViewModel = EditorToolbarViewModel(),
         attachmentRepository: AttachmentRepository? = nil,
-        attachmentService: AttachmentService? = nil
+        attachmentService: AttachmentService? = nil,
+        taggingService: TaggingService? = nil
     ) {
         self.ownerUserId = ownerUserId
         self.noteRepository = noteRepository
@@ -33,6 +39,7 @@ public final class NoteEditorViewModel: ObservableObject {
         self.toolbarViewModel = toolbarViewModel
         self.attachmentRepository = attachmentRepository
         self.attachmentService = attachmentService
+        self.taggingService = taggingService
     }
 
     public func open(noteId: UUID?) async throws {
@@ -42,6 +49,7 @@ public final class NoteEditorViewModel: ObservableObject {
             self.noteId = note.id
             title = note.title
             body = note.plainTextBody
+            noteTags = note.tags.sorted()
             await loadAttachments()
             return
         }
@@ -50,6 +58,7 @@ public final class NoteEditorViewModel: ObservableObject {
         self.noteId = newNote.id
         title = newNote.title
         body = newNote.plainTextBody
+        noteTags = newNote.tags.sorted()
         await loadAttachments()
     }
 
@@ -102,8 +111,60 @@ public final class NoteEditorViewModel: ObservableObject {
 
         do {
             noteAttachments = try await attachmentRepository.attachments(ownerType: .note, ownerId: noteId)
+            attachmentTagInputs = noteAttachments.reduce(into: [:]) { partial, attachment in
+                partial[attachment.id] = ""
+            }
         } catch {
             attachmentError = String(describing: error)
+        }
+    }
+
+    public func addNoteTag() async {
+        guard let noteId,
+              let taggingService else { return }
+        do {
+            let updated = try await taggingService.addTagToNote(noteId: noteId, rawTag: newNoteTagText)
+            noteTags = updated.tags.sorted()
+            newNoteTagText = ""
+            tagError = nil
+        } catch {
+            tagError = String(describing: error)
+        }
+    }
+
+    public func removeNoteTag(_ tag: String) async {
+        guard let noteId,
+              let taggingService else { return }
+        do {
+            let updated = try await taggingService.removeTagFromNote(noteId: noteId, rawTag: tag)
+            noteTags = updated.tags.sorted()
+            tagError = nil
+        } catch {
+            tagError = String(describing: error)
+        }
+    }
+
+    public func addAttachmentTag(attachmentId: UUID) async {
+        guard let taggingService else { return }
+        let rawTag = attachmentTagInputs[attachmentId] ?? ""
+        do {
+            let updated = try await taggingService.addTagToAttachment(attachmentId: attachmentId, rawTag: rawTag)
+            noteAttachments = noteAttachments.map { $0.id == updated.id ? updated : $0 }
+            attachmentTagInputs[attachmentId] = ""
+            tagError = nil
+        } catch {
+            tagError = String(describing: error)
+        }
+    }
+
+    public func removeAttachmentTag(attachmentId: UUID, tag: String) async {
+        guard let taggingService else { return }
+        do {
+            let updated = try await taggingService.removeTagFromAttachment(attachmentId: attachmentId, rawTag: tag)
+            noteAttachments = noteAttachments.map { $0.id == updated.id ? updated : $0 }
+            tagError = nil
+        } catch {
+            tagError = String(describing: error)
         }
     }
 
@@ -113,7 +174,11 @@ public final class NoteEditorViewModel: ObservableObject {
         body = ""
         noteAttachments = []
         newAttachmentPath = ""
+        noteTags = []
+        newNoteTagText = ""
+        attachmentTagInputs = [:]
         toolbarError = nil
         attachmentError = nil
+        tagError = nil
     }
 }

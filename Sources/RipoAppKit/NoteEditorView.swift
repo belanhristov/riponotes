@@ -33,6 +33,43 @@ public struct NoteEditorView: View {
                 )
 
             VStack(alignment: .leading, spacing: 8) {
+                Text("Tags")
+                    .font(.headline)
+                HStack(spacing: 8) {
+                    TextField("Add tag (#travel, idea...)", text: $viewModel.newNoteTagText)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Add Tag") {
+                        Task { await viewModel.addNoteTag() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                if viewModel.noteTags.isEmpty {
+                    Text("No tags yet")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(viewModel.noteTags, id: \.self) { tag in
+                                HStack(spacing: 4) {
+                                    Text("#\(tag)")
+                                    Button("x") {
+                                        Task { await viewModel.removeNoteTag(tag) }
+                                    }
+                                    .buttonStyle(.borderless)
+                                }
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.blue.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Images")
                     .font(.headline)
 
@@ -46,15 +83,55 @@ public struct NoteEditorView: View {
                 }
 
                 ForEach(viewModel.noteAttachments) { attachment in
-                    HStack {
-                        Text(attachment.localPath)
-                            .lineLimit(1)
-                            .font(.footnote)
-                        Spacer()
-                        Button("Remove") {
-                            Task { await viewModel.removeAttachment(attachment.id) }
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(attachment.localPath)
+                                .lineLimit(1)
+                                .font(.footnote)
+                            Spacer()
+                            Button("Remove") {
+                                Task { await viewModel.removeAttachment(attachment.id) }
+                            }
+                            .buttonStyle(.borderless)
                         }
-                        .buttonStyle(.borderless)
+
+                        HStack(spacing: 8) {
+                            TextField("Attachment tag", text: Binding(
+                                get: { viewModel.attachmentTagInputs[attachment.id] ?? "" },
+                                set: { viewModel.attachmentTagInputs[attachment.id] = $0 }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                            Button("Add") {
+                                Task { await viewModel.addAttachmentTag(attachmentId: attachment.id) }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
+                        if !attachment.tags.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 6) {
+                                    ForEach(attachment.tags.sorted(), id: \.self) { tag in
+                                        HStack(spacing: 4) {
+                                            Text("#\(tag)")
+                                            Button("x") {
+                                                Task {
+                                                    await viewModel.removeAttachmentTag(
+                                                        attachmentId: attachment.id,
+                                                        tag: tag
+                                                    )
+                                                }
+                                            }
+                                            .buttonStyle(.borderless)
+                                        }
+                                        .font(.caption2)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.orange.opacity(0.14))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -67,6 +144,12 @@ public struct NoteEditorView: View {
 
             if let attachmentError = viewModel.attachmentError {
                 Text(attachmentError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+
+            if let tagError = viewModel.tagError {
+                Text(tagError)
                     .font(.footnote)
                     .foregroundStyle(.red)
             }

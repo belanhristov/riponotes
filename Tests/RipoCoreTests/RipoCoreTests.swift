@@ -121,6 +121,12 @@ struct RipoCoreTests {
         let sync = InMemorySyncEngine()
         let attachmentRepo = InMemoryAttachmentRepository()
         let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+        let tripRepo = InMemoryTripRepository()
+        let tagging = TaggingService(
+            noteRepository: repo,
+            attachmentRepository: attachmentRepo,
+            tripRepository: tripRepo
+        )
         let userId = UUID()
 
         let service = NoteEditorService(noteRepository: repo, syncEngine: sync)
@@ -129,7 +135,8 @@ struct RipoCoreTests {
             noteRepository: repo,
             editorService: service,
             attachmentRepository: attachmentRepo,
-            attachmentService: attachmentService
+            attachmentService: attachmentService,
+            taggingService: tagging
         )
 
         try await vm.open(noteId: nil)
@@ -151,6 +158,15 @@ struct RipoCoreTests {
         await vm.addImageAttachment()
         #expect(vm.noteAttachments.count == 1)
         #expect(vm.noteAttachments.first?.localPath == "/tmp/note-editor-image.jpg")
+        vm.newNoteTagText = "journal"
+        await vm.addNoteTag()
+        #expect(vm.noteTags.contains("journal"))
+
+        if let image = vm.noteAttachments.first {
+            vm.attachmentTagInputs[image.id] = "travel"
+            await vm.addAttachmentTag(attachmentId: image.id)
+            #expect(vm.noteAttachments.first?.tags.contains("travel") == true)
+        }
 
         if let image = vm.noteAttachments.first {
             await vm.removeAttachment(image.id)
@@ -305,6 +321,7 @@ struct RipoCoreTests {
         let service = AttachmentService(attachmentRepository: repo)
         let noteId = UUID()
         let templateId = UUID()
+        let tripId = UUID()
 
         let noteImage = try await service.addImageToNote(
             noteId: noteId,
@@ -315,6 +332,10 @@ struct RipoCoreTests {
             templateId: templateId,
             localPath: "/tmp/template-image.jpg"
         )
+        let tripImage = try await service.addImageToTrip(
+            tripId: tripId,
+            localPath: "/tmp/trip-image.jpg"
+        )
 
         let updated = try await service.updateMetadata(
             attachmentId: noteImage.id,
@@ -324,13 +345,145 @@ struct RipoCoreTests {
 
         let noteAttachments = try await repo.attachments(ownerType: .note, ownerId: noteId)
         let templateAttachments = try await repo.attachments(ownerType: .template, ownerId: templateId)
+        let tripAttachments = try await repo.attachments(ownerType: .trip, ownerId: tripId)
         #expect(noteAttachments.count == 1)
         #expect(templateAttachments.count == 1)
+        #expect(tripAttachments.count == 1)
         #expect(templateImage.ownerType == .template)
+        #expect(tripImage.ownerType == .trip)
 
         try await service.removeAttachment(templateImage.id)
         let afterDelete = try await repo.attachments(ownerType: .template, ownerId: templateId)
         #expect(afterDelete.isEmpty)
+    }
+
+    @Test
+    func taggingServiceSupportsNoteAttachmentTripAndTagCloud() async throws {
+        let userId = UUID()
+        let noteRepo = InMemoryNoteRepository()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let tripRepo = InMemoryTripRepository()
+        let sync = InMemorySyncEngine()
+        let noteEngine = QuickNoteEngine(noteRepository: noteRepo, syncEngine: sync)
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+        let tagging = TaggingService(
+            noteRepository: noteRepo,
+            attachmentRepository: attachmentRepo,
+            tripRepository: tripRepo
+        )
+
+        let note = try await noteEngine.createNote(
+            QuickNoteInput(ownerUserId: userId, text: "Günlük entry", source: .manual)
+        )
+        _ = try await tagging.addTagToNote(noteId: note.id, rawTag: "Journal")
+        _ = try await tagging.addTagToNote(noteId: note.id, rawTag: "Mood")
+
+        let trip = Trip(
+            ownerUserId: userId,
+            title: "Rome",
+            origin: "IST",
+            destination: "ROM",
+            startDate: Date(timeIntervalSince1970: 2_000_000_000),
+            endDate: Date(timeIntervalSince1970: 2_000_000_000 + 86_400),
+            baseCurrency: "USD",
+            targetCurrency: "EUR"
+        )
+        try await tripRepo.upsertTrip(trip)
+        _ = try await tagging.addTagToTrip(tripId: trip.id, rawTag: "Travel")
+        _ = try await tagging.addTagToTrip(tripId: trip.id, rawTag: "Mood")
+
+        let image = try await attachmentService.addImageToTrip(
+            tripId: trip.id,
+            localPath: "/tmp/rome.jpg"
+        )
+        _ = try await tagging.addTagToAttachment(attachmentId: image.id, rawTag: "Sunset")
+        _ = try await tagging.addTagToAttachment(attachmentId: image.id, rawTag: "Travel")
+
+        let cloud = try await tagging.tagCloud(ownerUserId: userId)
+        #expect(cloud.first(where: { $0.tag == "mood" })?.count == 2)
+        #expect(cloud.first(where: { $0.tag == "travel" })?.count == 2)
+        #expect(cloud.first(where: { $0.tag == "journal" })?.count == 1)
+        #expect(cloud.first(where: { $0.tag == "sunset" })?.count == 1)
+    }
+
+    @Test
+    func socialShareServiceBuildsXAndInstagramPayloadWithHashtags() {
+        let service = SocialShareService()
+        let trip = Trip(
+            ownerUserId: UUID(),
+            title: "Lisbon Weekend",
+            origin: "IST",
+            destination: "LIS",
+            startDate: Date(timeIntervalSince1970: 2_000_000_000),
+            endDate: Date(timeIntervalSince1970: 2_000_000_000 + 86_400),
+            baseCurrency: "USD",
+            targetCurrency: "EUR",
+            tags: ["travel"]
+        )
+
+        let xPayload = service.buildTravelImageShare(
+            platform: .x,
+            trip: trip,
+            imagePath: "/tmp/lisbon.jpg",
+            tags: ["food", "sunset"]
+        )
+        #expect(xPayload.platform == .x)
+        #expect(xPayload.shareURL?.contains("twitter.com/intent/tweet") == true)
+        #expect(xPayload.message.contains("#food"))
+
+        let igPayload = service.buildTravelImageShare(
+            platform: .instagram,
+            trip: trip,
+            imagePath: "/tmp/lisbon.jpg",
+            tags: ["travel"]
+        )
+        #expect(igPayload.platform == .instagram)
+        #expect(igPayload.shareURL == "instagram://camera")
+    }
+
+    @MainActor
+    @Test
+    func tagCloudViewModelFiltersByQuery() async throws {
+        let userId = UUID()
+        let noteRepo = InMemoryNoteRepository()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let tripRepo = InMemoryTripRepository()
+        let sync = InMemorySyncEngine()
+        let note = try await QuickNoteEngine(noteRepository: noteRepo, syncEngine: sync).createNote(
+            QuickNoteInput(ownerUserId: userId, text: "test", source: .manual)
+        )
+        try await noteRepo.update(
+            Note(
+                id: note.id,
+                ownerUserId: note.ownerUserId,
+                title: note.title,
+                plainTextBody: note.plainTextBody,
+                folderId: note.folderId,
+                isPinned: note.isPinned,
+                status: note.status,
+                source: note.source,
+                tags: ["journal", "travel"],
+                syncState: note.syncState,
+                version: note.version,
+                lastSyncedAt: note.lastSyncedAt,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+                deletedAt: note.deletedAt
+            )
+        )
+
+        let tagging = TaggingService(
+            noteRepository: noteRepo,
+            attachmentRepository: attachmentRepo,
+            tripRepository: tripRepo
+        )
+        let vm = TagCloudViewModel(ownerUserId: userId, taggingService: tagging)
+        await vm.load()
+
+        #expect(vm.items.contains(where: { $0.tag == "journal" }))
+        vm.query = "jou"
+        #expect(vm.filteredItems.count == 1)
+        #expect(vm.filteredItems.first?.tag == "journal")
     }
 
     @Test
@@ -680,6 +833,7 @@ struct RipoCoreTests {
     func travelWorkspaceViewModelRunsTripFlow() async throws {
         let userId = UUID()
         let tripRepo = InMemoryTripRepository()
+        let attachmentRepo = InMemoryAttachmentRepository()
         let fx = InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9])
         let weather = InMemoryWeatherProvider(
             snapshot: WeatherSnapshot(condition: .cloudy, temperatureCelsius: 21, feelsLikeCelsius: 21)
@@ -690,11 +844,20 @@ struct RipoCoreTests {
             weatherProvider: weather
         )
         let smartPacking = SmartPackingService(tripRepository: tripRepo)
+        let tagging = TaggingService(
+            noteRepository: InMemoryNoteRepository(),
+            attachmentRepository: attachmentRepo,
+            tripRepository: tripRepo
+        )
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
         let vm = TravelWorkspaceViewModel(
             ownerUserId: userId,
             tripRepository: tripRepo,
             planner: planner,
-            smartPackingService: smartPacking
+            smartPackingService: smartPacking,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService,
+            taggingService: tagging
         )
 
         vm.draftTitle = "Paris Trip"
@@ -759,6 +922,23 @@ struct RipoCoreTests {
         #expect(vm.fxQuote?.baseCurrency == "USD")
         #expect(vm.fxQuote?.targetCurrency == "EUR")
         #expect(vm.fxQuote?.rate == 0.9)
+
+        vm.newTripTagText = "citybreak"
+        await vm.addTripTag()
+        #expect(vm.selectedTripTags.contains("citybreak"))
+
+        vm.newTripImagePath = "/tmp/flight-window.jpg"
+        await vm.addTripImage()
+        #expect(vm.tripAttachments.count == 1)
+        if let image = vm.tripAttachments.first {
+            vm.tripAttachmentTagInputs[image.id] = "skyline"
+            await vm.addTagToTripImage(attachmentId: image.id)
+            #expect(vm.tripAttachments.first?.tags.contains("skyline") == true)
+
+            await vm.previewShare(attachmentId: image.id, platform: .x)
+            #expect(vm.socialSharePreview?.platform == .x)
+            #expect(vm.socialSharePreview?.message.contains("#citybreak") == true)
+        }
     }
 
     @Test

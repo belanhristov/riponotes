@@ -21,6 +21,12 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     @Published public private(set) var budgetEstimate: TripBudgetEstimate?
     @Published public private(set) var weatherSummary: WeatherSnapshot?
     @Published public private(set) var fxQuote: TripFxQuote?
+    @Published public private(set) var tripAttachments: [Attachment] = []
+    @Published public private(set) var selectedTripTags: [String] = []
+    @Published public var newTripTagText: String = ""
+    @Published public var newTripImagePath: String = ""
+    @Published public var tripAttachmentTagInputs: [UUID: String] = [:]
+    @Published public private(set) var socialSharePreview: SocialSharePayload?
     @Published public var expenseBreakfast: String = "10"
     @Published public var expenseLunch: String = "20"
     @Published public var expenseDinner: String = "30"
@@ -34,17 +40,29 @@ public final class TravelWorkspaceViewModel: ObservableObject {
     private let tripRepository: TripRepository
     private let planner: TravelPlannerService
     private let smartPackingService: SmartPackingService?
+    private let attachmentRepository: AttachmentRepository?
+    private let attachmentService: AttachmentService?
+    private let taggingService: TaggingService?
+    private let socialShareService: SocialShareService
 
     public init(
         ownerUserId: UUID,
         tripRepository: TripRepository,
         planner: TravelPlannerService,
-        smartPackingService: SmartPackingService? = nil
+        smartPackingService: SmartPackingService? = nil,
+        attachmentRepository: AttachmentRepository? = nil,
+        attachmentService: AttachmentService? = nil,
+        taggingService: TaggingService? = nil,
+        socialShareService: SocialShareService = SocialShareService()
     ) {
         self.ownerUserId = ownerUserId
         self.tripRepository = tripRepository
         self.planner = planner
         self.smartPackingService = smartPackingService
+        self.attachmentRepository = attachmentRepository
+        self.attachmentService = attachmentService
+        self.taggingService = taggingService
+        self.socialShareService = socialShareService
     }
 
     public func loadTrips() async {
@@ -256,6 +274,83 @@ public final class TravelWorkspaceViewModel: ObservableObject {
         }
     }
 
+    public func addTripTag() async {
+        guard let selectedTripId,
+              let taggingService else { return }
+        do {
+            let updated = try await taggingService.addTagToTrip(tripId: selectedTripId, rawTag: newTripTagText)
+            selectedTripTags = updated.tags.sorted()
+            newTripTagText = ""
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func removeTripTag(_ tag: String) async {
+        guard let selectedTripId,
+              let taggingService else { return }
+        do {
+            let updated = try await taggingService.removeTagFromTrip(tripId: selectedTripId, rawTag: tag)
+            selectedTripTags = updated.tags.sorted()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func addTripImage() async {
+        guard let selectedTripId,
+              let attachmentService else { return }
+        do {
+            _ = try await attachmentService.addImageToTrip(
+                tripId: selectedTripId,
+                localPath: newTripImagePath
+            )
+            newTripImagePath = ""
+            await loadSelectedTripDetails()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func addTagToTripImage(attachmentId: UUID) async {
+        guard let taggingService else { return }
+        let rawTag = tripAttachmentTagInputs[attachmentId] ?? ""
+        do {
+            let updated = try await taggingService.addTagToAttachment(attachmentId: attachmentId, rawTag: rawTag)
+            tripAttachments = tripAttachments.map { $0.id == updated.id ? updated : $0 }
+            tripAttachmentTagInputs[attachmentId] = ""
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func removeTagFromTripImage(attachmentId: UUID, tag: String) async {
+        guard let taggingService else { return }
+        do {
+            let updated = try await taggingService.removeTagFromAttachment(attachmentId: attachmentId, rawTag: tag)
+            tripAttachments = tripAttachments.map { $0.id == updated.id ? updated : $0 }
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func previewShare(attachmentId: UUID, platform: SocialPlatform) async {
+        guard let selectedTripId,
+              let trip = try? await tripRepository.trip(by: selectedTripId),
+              let attachment = tripAttachments.first(where: { $0.id == attachmentId }) else { return }
+        socialSharePreview = socialShareService.buildTravelImageShare(
+            platform: platform,
+            trip: trip,
+            imagePath: attachment.localPath,
+            tags: attachment.tags.union(trip.tags)
+        )
+    }
+
     private func loadSelectedTripDetails() async {
         guard let selectedTripId else {
             segments = []
@@ -264,6 +359,9 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             budgetEstimate = nil
             weatherSummary = nil
             fxQuote = nil
+            tripAttachments = []
+            selectedTripTags = []
+            socialSharePreview = nil
             return
         }
 
@@ -272,6 +370,20 @@ public final class TravelWorkspaceViewModel: ObservableObject {
             checklistItems = try await tripRepository.checklistItems(tripId: selectedTripId)
             packingItems = try await tripRepository.packingItems(tripId: selectedTripId)
             budgetEstimate = try await tripRepository.budgetEstimate(tripId: selectedTripId)
+            if let trip = try await tripRepository.trip(by: selectedTripId) {
+                selectedTripTags = trip.tags.sorted()
+            } else {
+                selectedTripTags = []
+            }
+            if let attachmentRepository {
+                tripAttachments = try await attachmentRepository.attachments(ownerType: .trip, ownerId: selectedTripId)
+                tripAttachmentTagInputs = tripAttachments.reduce(into: [:]) { partial, item in
+                    partial[item.id] = ""
+                }
+            } else {
+                tripAttachments = []
+                tripAttachmentTagInputs = [:]
+            }
         } catch {
             errorMessage = String(describing: error)
         }
