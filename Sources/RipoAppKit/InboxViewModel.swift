@@ -6,6 +6,8 @@ import RipoUseCases
 public final class InboxViewModel: ObservableObject {
     @Published public private(set) var notes: [Note] = []
     @Published public private(set) var selectedNoteId: UUID?
+    @Published public var brainDumpText: String = ""
+    @Published public private(set) var brainDumpError: String?
 
     private let ownerUserId: UUID
     private let noteRepository: NoteRepository
@@ -36,5 +38,19 @@ public final class InboxViewModel: ObservableObject {
 
     public func select(noteId: UUID?) {
         selectedNoteId = noteId
+    }
+
+    @discardableResult
+    public func submitBrainDump(source: NoteSource = .manual) async throws -> Note? {
+        let trimmed = brainDumpText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            brainDumpError = "Brain dump is empty."
+            return nil
+        }
+
+        let created = try await addQuickNote(text: trimmed, source: source)
+        brainDumpText = ""
+        brainDumpError = nil
+        return created
     }
 }

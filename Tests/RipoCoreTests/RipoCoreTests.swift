@@ -93,6 +93,29 @@ struct RipoCoreTests {
 
     @MainActor
     @Test
+    func inboxViewModelBrainDumpValidatesAndCreatesNote() async throws {
+        let repo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let userId = UUID()
+
+        let quickNote = QuickNoteEngine(noteRepository: repo, syncEngine: sync)
+        let vm = InboxViewModel(ownerUserId: userId, noteRepository: repo, quickNoteEngine: quickNote)
+
+        vm.brainDumpText = "   "
+        let emptyResult = try await vm.submitBrainDump()
+        #expect(emptyResult == nil)
+        #expect(vm.brainDumpError == "Brain dump is empty.")
+
+        vm.brainDumpText = "Call dentist tomorrow"
+        let created = try await vm.submitBrainDump()
+        #expect(created != nil)
+        #expect(vm.brainDumpText.isEmpty)
+        #expect(vm.brainDumpError == nil)
+        #expect(vm.notes.count == 1)
+    }
+
+    @MainActor
+    @Test
     func noteEditorViewModelCreatesDraftAndSavesBody() async throws {
         let repo = InMemoryNoteRepository()
         let sync = InMemorySyncEngine()
