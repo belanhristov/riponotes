@@ -34,6 +34,12 @@ public protocol CalendarEventService: Sendable {
     ) async throws -> String
 }
 
+public protocol TemplateRepository: Sendable {
+    func upsert(_ template: TemplateDefinition) async throws
+    func template(by id: UUID) async throws -> TemplateDefinition?
+    func templates(ownerUserId: UUID, scope: TemplateScope?) async throws -> [TemplateDefinition]
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

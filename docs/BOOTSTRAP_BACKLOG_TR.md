@@ -73,7 +73,7 @@ Durum etiketleri: `todo`, `in_progress`, `done`
 ## Epic 5: Meeting Flow
 
 ### Task 5.1 - Meeting template + participants
-- Durum: `todo`
+- Durum: `in_progress`
 - Hedef: toplantı notu hızlı başlatma.
 - Kabul kriteri:
   - Template ile prefilled alanlar gelir.

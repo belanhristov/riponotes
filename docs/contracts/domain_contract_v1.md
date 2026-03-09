@@ -12,6 +12,7 @@ Bu sözleşme platform bağımsızdır ve Apple (SwiftUI) + Android (Kotlin) ist
 - `LocationLink`
 - `CalendarLink`
 - `Attachment`
+- `TemplateDefinition`
 
 ## Required Note Fields
 - `id: UUID`

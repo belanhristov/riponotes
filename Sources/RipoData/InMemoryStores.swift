@@ -148,3 +148,25 @@ public actor InMemoryCalendarEventService: CalendarEventService {
         events[id]
     }
 }
+
+public actor InMemoryTemplateRepository: TemplateRepository {
+    private var templatesById: [UUID: TemplateDefinition] = [:]
+
+    public init() {}
+
+    public func upsert(_ template: TemplateDefinition) async throws {
+        templatesById[template.id] = template
+    }
+
+    public func template(by id: UUID) async throws -> TemplateDefinition? {
+        templatesById[id]
+    }
+
+    public func templates(ownerUserId: UUID, scope: TemplateScope?) async throws -> [TemplateDefinition] {
+        templatesById.values
+            .filter { template in
+                template.ownerUserId == ownerUserId && (scope == nil || template.scope == scope)
+            }
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+    }
+}

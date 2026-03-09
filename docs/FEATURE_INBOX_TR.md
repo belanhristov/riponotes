@@ -34,7 +34,7 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-009 | Hava durumu bağlama | triaged | orta | M | Faz 2 | Konuma bağlı anlık hava verisi çekimi ve note/journal bağlamında gösterim. |
 | F-010 | Gelişmiş lokasyon bağlama | triaged | yüksek | M | Faz 2 | Not bazlı lokasyon ekleme var; çoklu lokasyon ve yer bazlı görünüm genişletilecek. |
 | F-011 | Hava durumuna göre mod/öneri | triaged | yüksek | L | Faz 3 | Örnek: hava güneşliyse ve sahile yakınsa 5 dk yürüyüş önerisi; öneri motoru + izin yönetimi gerekir. |
-| F-012 | Not ve Journal için ayrı Template Studio | triaged | yüksek | M | Faz 2 | Not/Journal için ayrı şablon seti, mevcut şablondan seçim ve “şablondan şablon türetme” desteği. |
+| F-012 | Not ve Journal için ayrı Template Studio | in_progress | yüksek | M | Faz 2 | Domain + template engine ile temel altyapı başlatıldı; UI stüdyo ekranları sırada. |
 | F-013 | Zengin düzenleme barı (editor toolbar) | triaged | yüksek | L | Faz 2-3 | Girinti/çıkıntı, boyut, çizgi, biçim ve hızlı düzenleme aksiyonları için üstte çok fonksiyonlu bar. |
 | F-014 | Şablon/Not/Journal içine resim ekleme | triaged | yüksek | M | Faz 2 | Attachment katmanıyla görsel ekleme, önizleme ve düzenleme akışı. |
 | F-015 | AI önerilen moddan tek adım yazmaya başlama | triaged | orta | M | Faz 3 | AI mod önerisi seçildiğinde doğrudan editöre düşen hazır başlangıç metni/şablon. |

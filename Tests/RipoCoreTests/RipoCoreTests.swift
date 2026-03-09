@@ -209,4 +209,41 @@ struct RipoCoreTests {
             #expect(event?.title == "Doctor Appointment")
         }
     }
+
+    @Test
+    func templateEngineCreatesAndClonesTemplateAndBuildsNote() async throws {
+        let templates = InMemoryTemplateRepository()
+        let notes = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let service = TemplateEngineService(
+            templateRepository: templates,
+            noteRepository: notes,
+            syncEngine: sync
+        )
+
+        let userId = UUID()
+        let created = try await service.createTemplate(
+            ownerUserId: userId,
+            name: "Beach Journal",
+            scope: .journal,
+            type: .daily,
+            titleTemplate: "Journal - {{date}}",
+            bodyTemplate: "Mood: {{mood}}\\nPlace: {{place}}\\nNotes:\\n"
+        )
+
+        let cloned = try await service.cloneTemplate(templateId: created.id, newName: "Beach Journal Copy")
+        #expect(cloned.id != created.id)
+        #expect(cloned.name == "Beach Journal Copy")
+
+        let note = try await service.createNoteFromTemplate(
+            templateId: created.id,
+            ownerUserId: userId,
+            variables: ["date": "2026-03-09", "mood": "Enerjik", "place": "Sahil"],
+            source: .manual
+        )
+
+        #expect(note.title == "Journal - 2026-03-09")
+        #expect(note.plainTextBody.contains("Mood: Enerjik"))
+        #expect(note.plainTextBody.contains("Place: Sahil"))
+    }
 }

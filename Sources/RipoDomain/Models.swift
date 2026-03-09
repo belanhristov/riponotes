@@ -54,6 +54,20 @@ public enum CalendarProvider: String, Codable, Sendable {
     case outlook
 }
 
+public enum TemplateScope: String, Codable, Sendable {
+    case note
+    case journal
+}
+
+public enum TemplateType: String, Codable, Sendable {
+    case meeting
+    case shopping
+    case project
+    case daily
+    case idea
+    case custom
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider
@@ -319,6 +333,40 @@ public struct CalendarLink: Identifiable, Codable, Sendable, Equatable {
         self.eventTitleSnapshot = eventTitleSnapshot
         self.startAt = startAt
         self.endAt = endAt
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct TemplateDefinition: Identifiable, Codable, Sendable, Equatable {
+    public var id: UUID
+    public var ownerUserId: UUID
+    public var name: String
+    public var scope: TemplateScope
+    public var type: TemplateType
+    public var titleTemplate: String
+    public var bodyTemplate: String
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        ownerUserId: UUID,
+        name: String,
+        scope: TemplateScope,
+        type: TemplateType,
+        titleTemplate: String,
+        bodyTemplate: String,
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.ownerUserId = ownerUserId
+        self.name = name
+        self.scope = scope
+        self.type = type
+        self.titleTemplate = titleTemplate
+        self.bodyTemplate = bodyTemplate
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
