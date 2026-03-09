@@ -32,8 +32,41 @@ public struct NoteEditorView: View {
                         .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                 )
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Images")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    TextField("Image path (/tmp/note.jpg)", text: $viewModel.newAttachmentPath)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Add") {
+                        Task { await viewModel.addImageAttachment() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                ForEach(viewModel.noteAttachments) { attachment in
+                    HStack {
+                        Text(attachment.localPath)
+                            .lineLimit(1)
+                            .font(.footnote)
+                        Spacer()
+                        Button("Remove") {
+                            Task { await viewModel.removeAttachment(attachment.id) }
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+
             if let toolbarError = viewModel.toolbarError {
                 Text(toolbarError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+
+            if let attachmentError = viewModel.attachmentError {
+                Text(attachmentError)
                     .font(.footnote)
                     .foregroundStyle(.red)
             }

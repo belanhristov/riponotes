@@ -89,10 +89,18 @@ struct RipoCoreTests {
     func noteEditorViewModelCreatesDraftAndSavesBody() async throws {
         let repo = InMemoryNoteRepository()
         let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
         let userId = UUID()
 
         let service = NoteEditorService(noteRepository: repo, syncEngine: sync)
-        let vm = NoteEditorViewModel(ownerUserId: userId, noteRepository: repo, editorService: service)
+        let vm = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: repo,
+            editorService: service,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
+        )
 
         try await vm.open(noteId: nil)
         vm.title = ""
@@ -108,6 +116,16 @@ struct RipoCoreTests {
         vm.body = "line1\nline2"
         vm.applyToolbar(.indent, lineRange: 2...2)
         #expect(vm.body == "line1\n    line2")
+
+        vm.newAttachmentPath = "/tmp/note-editor-image.jpg"
+        await vm.addImageAttachment()
+        #expect(vm.noteAttachments.count == 1)
+        #expect(vm.noteAttachments.first?.localPath == "/tmp/note-editor-image.jpg")
+
+        if let image = vm.noteAttachments.first {
+            await vm.removeAttachment(image.id)
+        }
+        #expect(vm.noteAttachments.isEmpty)
     }
 
     #if canImport(SwiftData)

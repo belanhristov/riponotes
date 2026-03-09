@@ -36,6 +36,6 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-011 | Hava durumuna göre mod/öneri | triaged | yüksek | L | Faz 3 | Örnek: hava güneşliyse ve sahile yakınsa 5 dk yürüyüş önerisi; öneri motoru + izin yönetimi gerekir. |
 | F-012 | Not ve Journal için ayrı Template Studio | in_progress | yüksek | M | Faz 2 | Domain + template engine + AppKit TemplateStudio view/viewmodel + canlı önizleme + şablon düzenleme kaydetme eklendi; gelişmiş medya/AI öneri entegrasyonu sırada. |
 | F-013 | Zengin düzenleme barı (editor toolbar) | in_progress | yüksek | L | Faz 2-3 | Komut çekirdeği + AppKit toolbar view/viewmodel eklendi; gelişmiş stil seçenekleri ve full editor entegrasyonu sırada. |
-| F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio’da seçili şablona görsel ekle/çıkar UI akışı eklendi; not/journal editor medya UI polish sırada. |
+| F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio ve Note Editor’da görsel ekle/çıkar UI akışı eklendi; journal editor ve medya preview polish sırada. |
 | F-015 | AI önerilen moddan tek adım yazmaya başlama | triaged | orta | M | Faz 3 | AI mod önerisi seçildiğinde doğrudan editöre düşen hazır başlangıç metni/şablon. |
 | F-016 | Bağlama göre otomatik şablon üretimi | triaged | yüksek | L | Faz 3 | Hava + konum + mod sinyaline göre (örn. sahile yakın/güneşli) otomatik template önerimi/oluşturma. |
