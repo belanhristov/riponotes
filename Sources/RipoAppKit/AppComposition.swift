@@ -24,4 +24,11 @@ public enum AppComposition {
             authenticator: InMemoryAppAuthenticator(nextResult: true)
         )
     }
+
+    public static func makeCurrencyRateProvider(useProductionAdapters: Bool) -> CurrencyRateProvider {
+        if useProductionAdapters {
+            return FrankfurterCurrencyRateProvider()
+        }
+        return InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9, "USD_TRY": 36.0, "EUR_TRY": 40.0])
+    }
 }

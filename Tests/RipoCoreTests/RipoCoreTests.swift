@@ -752,4 +752,21 @@ struct RipoCoreTests {
         #expect(saved.contains(where: { $0.text == "Swimsuit" }))
         #expect(saved.contains(where: { $0.text == "Hiking Shoes" }))
     }
+
+    @Test
+    func frankfurterProviderParsesLatestRatePayload() throws {
+        let json = """
+        {
+          "amount": 1.0,
+          "base": "USD",
+          "date": "2026-03-09",
+          "rates": {
+            "EUR": 0.92
+          }
+        }
+        """
+        let data = Data(json.utf8)
+        let rate = try FrankfurterCurrencyRateProvider.parseRate(data: data, targetCurrency: "EUR")
+        #expect(rate == 0.92)
+    }
 }

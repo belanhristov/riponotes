@@ -27,7 +27,7 @@ let package = Package(
         ),
         .target(
             name: "RipoAppKit",
-            dependencies: ["RipoDomain", "RipoUseCases"]
+            dependencies: ["RipoDomain", "RipoUseCases", "RipoData"]
         ),
         .target(
             name: "RipoCore",
