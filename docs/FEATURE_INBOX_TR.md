@@ -45,3 +45,6 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-020 | Seyahat öncesi checklist | in_progress | yüksek | S | Faz 3 | Checklist item modeli + toggle + Travel workspace UI akışı eklendi; reminder bağlama sırada. |
 | F-021 | Valiz hazırlama + kritik hatırlatmalar | in_progress | yüksek | M | Faz 3 | Packing item modeli + toggle + Travel workspace UI akışı eklendi; kritik reminder otomasyonu sırada. |
 | F-022 | Para birimine göre harcama öngörüsü | in_progress | yüksek | L | Faz 3 | Currency rate provider + budget estimate çekirdeği eklendi; gerçek FX API adaptörü ve tahmin UI'si sırada. |
+| F-023 | Packr-benzeri akıllı valiz şablonları | triaged | yüksek | M | Faz 3 | Destinasyon/süre/hava durumuna göre otomatik packing önerileri + kategorik valiz şablonları. |
+| F-024 | Elk-benzeri sade hedef ülke kur görünümü | triaged | yüksek | M | Faz 3 | Tüm kurlar yerine sadece seyahat edilen ülke kuru + kişisel harcama profili dönüşümü. |
+| F-025 | Kişisel harcama profili (öğün/içecek/ulaşım) | in_progress | yüksek | M | Faz 3 | Expense profile modeli + budget estimate from profile çekirdeği eklendi; UI formu ve gerçek kur API bağlama sırada. |

@@ -53,6 +53,22 @@ Temel ihtiyaçlar:
 - Harcama takibi (estimate vs actual)
 - Trip sonrası “travel journal” otomatik şablonu
 
+## Rekabet Odaklı Yön (Packr + Elk yaklaşımı)
+
+- Packr-benzeri:
+  - Destinasyon + seyahat süresi + hava durumuna göre otomatik valiz şablonu
+  - Kategori bazlı kritik öğeler (pasaport, ilaç, şarj aleti, adaptör)
+  - “Sonraki seyahatte tekrar kullan” kişisel packing preset'i
+
+- Elk-benzeri (sade):
+  - Sadece seçilen seyahat ülkesinin para birimi gösterilir
+  - Kullanıcı kendi günlük harcama profilini girer:
+    - kahvaltı, öğle, akşam yemeği, içki, ulaşım, ekstra
+  - Sistem tek ekranda şunu verir:
+    - hedef para biriminde günlük toplam
+    - seyahat toplam tahmini
+    - kullanılan kur + güncelleme zamanı
+
 ## Test Önerisi
 
 - macOS: Trip oluşturma, checklist tikleme, budget hesaplama akışı

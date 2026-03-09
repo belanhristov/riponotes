@@ -625,6 +625,19 @@ struct RipoCoreTests {
 
         let segments = try await tripRepo.segments(tripId: trip.id)
         #expect(segments.count == 2)
+
+        let profileEstimate = try await planner.estimateBudgetFromExpenseProfile(
+            tripId: trip.id,
+            profile: TripExpenseProfile(
+                breakfastCost: 10,
+                lunchCost: 20,
+                dinnerCost: 30,
+                drinksCost: 15,
+                transportCost: 10,
+                miscCost: 15
+            )
+        )
+        #expect(profileEstimate.dailyEstimate == 90)
     }
 
     @MainActor

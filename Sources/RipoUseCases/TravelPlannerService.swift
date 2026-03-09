@@ -176,6 +176,22 @@ public struct TravelPlannerService: Sendable {
         return estimate
     }
 
+    @discardableResult
+    public func estimateBudgetFromExpenseProfile(
+        tripId: UUID,
+        profile: TripExpenseProfile,
+        confidence: Double = 0.8,
+        now: Date = .now
+    ) async throws -> TripBudgetEstimate {
+        guard profile.dailyTotal > 0 else { throw TravelPlannerError.invalidDailyEstimate }
+        return try await estimateBudget(
+            tripId: tripId,
+            dailySpendInBaseCurrency: profile.dailyTotal,
+            confidence: confidence,
+            now: now
+        )
+    }
+
     public func weatherSummaryForTripDestination(tripId: UUID, latitude: Double, longitude: Double) async throws -> WeatherSnapshot {
         guard try await tripRepository.trip(by: tripId) != nil else { throw TravelPlannerError.tripNotFound }
         return try await weatherProvider.currentWeather(latitude: latitude, longitude: longitude)

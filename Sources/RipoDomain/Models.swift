@@ -641,6 +641,35 @@ public struct TripBudgetEstimate: Identifiable, Codable, Sendable, Equatable {
     }
 }
 
+public struct TripExpenseProfile: Codable, Sendable, Equatable {
+    public var breakfastCost: Double
+    public var lunchCost: Double
+    public var dinnerCost: Double
+    public var drinksCost: Double
+    public var transportCost: Double
+    public var miscCost: Double
+
+    public init(
+        breakfastCost: Double = 0,
+        lunchCost: Double = 0,
+        dinnerCost: Double = 0,
+        drinksCost: Double = 0,
+        transportCost: Double = 0,
+        miscCost: Double = 0
+    ) {
+        self.breakfastCost = breakfastCost
+        self.lunchCost = lunchCost
+        self.dinnerCost = dinnerCost
+        self.drinksCost = drinksCost
+        self.transportCost = transportCost
+        self.miscCost = miscCost
+    }
+
+    public var dailyTotal: Double {
+        breakfastCost + lunchCost + dinnerCost + drinksCost + transportCost + miscCost
+    }
+}
+
 public struct SyncJob: Identifiable, Codable, Sendable, Equatable {
     public enum Operation: String, Codable, Sendable {
         case create
