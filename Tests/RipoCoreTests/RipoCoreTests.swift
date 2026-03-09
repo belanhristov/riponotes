@@ -302,4 +302,41 @@ struct RipoCoreTests {
         let divider = try toolbar.apply(.insertDivider(afterLine: 1), to: "A\nB")
         #expect(divider == "A\n---\nB")
     }
+
+    @MainActor
+    @Test
+    func templateStudioViewModelCreatesClonesAndBuildsNote() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let engine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+        let vm = TemplateStudioViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: engine
+        )
+
+        await vm.createTemplate(
+            name: "Daily Journal",
+            scope: .journal,
+            type: .daily,
+            titleTemplate: "Journal {{date}}",
+            bodyTemplate: "Mood: {{mood}}"
+        )
+        #expect(vm.templates.count == 1)
+
+        await vm.cloneSelectedTemplate(newName: "Daily Journal Copy")
+        #expect(vm.templates.count == 2)
+
+        let createdNote = await vm.createNoteFromSelectedTemplate(
+            variables: ["date": "2026-03-09", "mood": "Calm"]
+        )
+        #expect(createdNote != nil)
+        #expect(createdNote?.plainTextBody.contains("Mood: Calm") == true)
+    }
 }
