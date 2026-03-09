@@ -39,3 +39,9 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio ve Note Editor’da görsel ekle/çıkar UI akışı eklendi; journal editor ve medya preview polish sırada. |
 | F-015 | AI önerilen moddan tek adım yazmaya başlama | triaged | orta | M | Faz 3 | AI mod önerisi seçildiğinde doğrudan editöre düşen hazır başlangıç metni/şablon. |
 | F-016 | Bağlama göre otomatik şablon üretimi | triaged | yüksek | L | Faz 3 | Hava + konum + mod sinyaline göre (örn. sahile yakın/güneşli) otomatik template önerimi/oluşturma. |
+| F-017 | Travel Planner (Trip workspace) | triaged | yüksek | L | Faz 3 | Seyahat için ayrı workspace: tarih, rota, notlar, checklist, bütçe tek yerde. |
+| F-018 | Uçak + otel itinerary girişi | triaged | yüksek | M | Faz 3 | Gidiş-dönüş uçuş, otel check-in/out, rezervasyon detayları, doküman attachment. |
+| F-019 | Seyahat tarihine göre hava kontrolü | triaged | yüksek | M | Faz 3 | Trip tarihine göre hedef lokasyon hava özeti ve uyarılar. |
+| F-020 | Seyahat öncesi checklist | triaged | yüksek | S | Faz 3 | Pasaport, vize, check-in, transfer vb tiklenebilir görevler. |
+| F-021 | Valiz hazırlama + kritik hatırlatmalar | triaged | yüksek | M | Faz 3 | Kategori bazlı valiz listesi, kritik öğeler için alarm/follow-up. |
+| F-022 | Para birimine göre harcama öngörüsü | triaged | yüksek | L | Faz 3 | FX kur snapshot + günlük bütçe varsayımlarıyla tahmini harcama modeli. |

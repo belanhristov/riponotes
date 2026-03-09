@@ -72,6 +72,12 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - AI önerilen moddan tek adım yazma akışı
 - Hava + konum + kullanıcı moduna göre otomatik şablon üretimi
 
+14. Travel Pro Module (Faz 3)
+- Trip workspace (uçuş, otel, tarih, rota)
+- Seyahat checklist + valiz checklist
+- Hedef lokasyona göre hava özeti
+- Para birimi bazlı harcama öngörüsü (FX entegrasyonu)
+
 ## Karar Kriteri (Yeni özellik geldiğinde)
 
 - Kullanıcı etkisi (yüksek/orta/düşük)
