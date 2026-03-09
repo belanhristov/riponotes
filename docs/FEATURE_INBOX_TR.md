@@ -39,9 +39,9 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio ve Note Editor’da görsel ekle/çıkar UI akışı eklendi; journal editor ve medya preview polish sırada. |
 | F-015 | AI önerilen moddan tek adım yazmaya başlama | triaged | orta | M | Faz 3 | AI mod önerisi seçildiğinde doğrudan editöre düşen hazır başlangıç metni/şablon. |
 | F-016 | Bağlama göre otomatik şablon üretimi | triaged | yüksek | L | Faz 3 | Hava + konum + mod sinyaline göre (örn. sahile yakın/güneşli) otomatik template önerimi/oluşturma. |
-| F-017 | Travel Planner (Trip workspace) | in_progress | yüksek | L | Faz 3 | Trip domain modeli + TravelPlannerService çekirdeği + testler eklendi; UI workspace katmanı sırada. |
-| F-018 | Uçak + otel itinerary girişi | in_progress | yüksek | M | Faz 3 | Flight/hotel segment modelleri ve servis akışı eklendi; UI formu ve import akışı sırada. |
+| F-017 | Travel Planner (Trip workspace) | in_progress | yüksek | L | Faz 3 | Trip domain + service + AppKit TravelWorkspace view/viewmodel + test eklendi; gerçek app target wiring ve data persistence polish sırada. |
+| F-018 | Uçak + otel itinerary girişi | in_progress | yüksek | M | Faz 3 | Flight/hotel segment service + AppKit UI girişi eklendi; rezervasyon importu ve provider entegrasyonu sırada. |
 | F-019 | Seyahat tarihine göre hava kontrolü | triaged | yüksek | M | Faz 3 | Trip tarihine göre hedef lokasyon hava özeti ve uyarılar. |
-| F-020 | Seyahat öncesi checklist | in_progress | yüksek | S | Faz 3 | Checklist item modeli + toggle akışı eklendi; UI ve reminder bağlama sırada. |
-| F-021 | Valiz hazırlama + kritik hatırlatmalar | in_progress | yüksek | M | Faz 3 | Packing item modeli + toggle akışı eklendi; kritik reminder otomasyonu sırada. |
+| F-020 | Seyahat öncesi checklist | in_progress | yüksek | S | Faz 3 | Checklist item modeli + toggle + Travel workspace UI akışı eklendi; reminder bağlama sırada. |
+| F-021 | Valiz hazırlama + kritik hatırlatmalar | in_progress | yüksek | M | Faz 3 | Packing item modeli + toggle + Travel workspace UI akışı eklendi; kritik reminder otomasyonu sırada. |
 | F-022 | Para birimine göre harcama öngörüsü | in_progress | yüksek | L | Faz 3 | Currency rate provider + budget estimate çekirdeği eklendi; gerçek FX API adaptörü ve tahmin UI'si sırada. |

@@ -626,4 +626,56 @@ struct RipoCoreTests {
         let segments = try await tripRepo.segments(tripId: trip.id)
         #expect(segments.count == 2)
     }
+
+    @MainActor
+    @Test
+    func travelWorkspaceViewModelRunsTripFlow() async throws {
+        let userId = UUID()
+        let tripRepo = InMemoryTripRepository()
+        let fx = InMemoryCurrencyRateProvider(rates: ["USD_EUR": 0.9])
+        let weather = InMemoryWeatherProvider(
+            snapshot: WeatherSnapshot(condition: .cloudy, temperatureCelsius: 21, feelsLikeCelsius: 21)
+        )
+        let planner = TravelPlannerService(
+            tripRepository: tripRepo,
+            currencyRateProvider: fx,
+            weatherProvider: weather
+        )
+        let vm = TravelWorkspaceViewModel(ownerUserId: userId, tripRepository: tripRepo, planner: planner)
+
+        vm.draftTitle = "Paris Trip"
+        vm.draftOrigin = "Istanbul"
+        vm.draftDestination = "Paris"
+        vm.draftBaseCurrency = "USD"
+        vm.draftTargetCurrency = "EUR"
+        vm.draftStartDate = Date(timeIntervalSince1970: 2_300_000_000)
+        vm.draftEndDate = vm.draftStartDate.addingTimeInterval(60 * 60 * 24 * 4)
+
+        await vm.createTripFromDraft()
+        #expect(vm.trips.count == 1)
+        #expect(vm.selectedTripId != nil)
+
+        await vm.addFlight(
+            providerName: "AF",
+            confirmationCode: "AF123",
+            departureAt: vm.draftStartDate,
+            arrivalAt: vm.draftStartDate.addingTimeInterval(60 * 60 * 3)
+        )
+        await vm.addHotel(
+            hotelName: "Paris Inn",
+            confirmationCode: "HOTELX",
+            checkIn: vm.draftStartDate,
+            checkOut: vm.draftEndDate
+        )
+        await vm.addChecklist(text: "Passport", category: .documents, isCritical: true)
+        await vm.addPacking(text: "Jacket", category: .clothes, quantity: 1, isCritical: false)
+        await vm.estimateBudget(dailySpendInBaseCurrency: 150)
+        await vm.refreshWeather(latitude: 48.85, longitude: 2.35)
+
+        #expect(vm.segments.count == 2)
+        #expect(vm.checklistItems.count == 1)
+        #expect(vm.packingItems.count == 1)
+        #expect(vm.budgetEstimate != nil)
+        #expect(vm.weatherSummary?.condition == .cloudy)
+    }
 }

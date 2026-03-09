@@ -5,6 +5,7 @@ public enum AppSection: String, CaseIterable, Identifiable, Sendable {
     case today
     case notes
     case lists
+    case travel
     case people
     case calendar
     case search
@@ -18,6 +19,7 @@ public enum AppSection: String, CaseIterable, Identifiable, Sendable {
         case .today: return "Today"
         case .notes: return "Notes"
         case .lists: return "Lists"
+        case .travel: return "Travel"
         case .people: return "People"
         case .calendar: return "Calendar"
         case .search: return "Search"
