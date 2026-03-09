@@ -777,6 +777,23 @@ struct RipoCoreTests {
 
         let divider = try toolbar.apply(.insertDivider(afterLine: 1), to: "A\nB")
         #expect(divider == "A\n---\nB")
+
+        let bullets = try toolbar.apply(.toggleBulletedList, to: "One\nTwo", lineRange: 1...2)
+        #expect(bullets.contains("- One"))
+
+        let numbers = try toolbar.apply(.toggleNumberedList, to: "One\nTwo", lineRange: 1...2)
+        #expect(numbers.contains("1. One"))
+        #expect(numbers.contains("2. Two"))
+
+        let quote = try toolbar.apply(.toggleQuote, to: "Line")
+        #expect(quote == "> Line")
+
+        let code = try toolbar.apply(.toggleCodeFence, to: "print(\"hi\")")
+        #expect(code.hasPrefix("```"))
+
+        let stamped = try toolbar.apply(.insertTimestamp, to: "Log")
+        #expect(stamped.contains("Log"))
+        #expect(stamped.contains("["))
     }
 
     @MainActor

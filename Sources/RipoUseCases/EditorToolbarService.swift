@@ -6,6 +6,11 @@ public enum EditorCommand: Sendable {
     case increaseHeading
     case decreaseHeading
     case toggleChecklist
+    case toggleBulletedList
+    case toggleNumberedList
+    case toggleQuote
+    case toggleCodeFence
+    case insertTimestamp
     case insertDivider(afterLine: Int?)
 }
 
@@ -56,6 +61,61 @@ public struct EditorToolbarService: Sendable {
                     lines[i] = "- [ ] " + lines[i]
                 }
             }
+
+        case .toggleBulletedList:
+            for i in targetRange {
+                let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("- ") {
+                    lines[i] = lines[i].replacingOccurrences(of: "- ", with: "", options: [.anchored])
+                } else {
+                    lines[i] = "- " + lines[i]
+                }
+            }
+
+        case .toggleNumberedList:
+            for (offset, i) in targetRange.enumerated() {
+                let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
+                if trimmed.first?.isNumber == true,
+                   trimmed.contains(". ")
+                {
+                    if let dot = lines[i].firstIndex(of: ".") {
+                        let next = lines[i].index(after: dot)
+                        let after = next < lines[i].endIndex ? lines[i].index(after: next) : lines[i].endIndex
+                        if after <= lines[i].endIndex {
+                            lines[i] = String(lines[i][after...])
+                        }
+                    }
+                } else {
+                    lines[i] = "\(offset + 1). " + lines[i]
+                }
+            }
+
+        case .toggleQuote:
+            for i in targetRange {
+                let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("> ") {
+                    lines[i] = lines[i].replacingOccurrences(of: "> ", with: "", options: [.anchored])
+                } else {
+                    lines[i] = "> " + lines[i]
+                }
+            }
+
+        case .toggleCodeFence:
+            let segment = targetRange.map { lines[$0] }.joined(separator: "\n")
+            if segment.hasPrefix("```"), segment.hasSuffix("```") {
+                var unwrapped = segment
+                unwrapped = String(unwrapped.dropFirst(3))
+                unwrapped = String(unwrapped.dropLast(3))
+                let replacement = unwrapped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                lines.replaceSubrange(targetRange, with: replacement)
+            } else {
+                let wrapped = ["```"] + targetRange.map { lines[$0] } + ["```"]
+                lines.replaceSubrange(targetRange, with: wrapped)
+            }
+
+        case .insertTimestamp:
+            let stamp = Date.now.formatted(date: .abbreviated, time: .shortened)
+            lines.append("[\(stamp)]")
 
         case let .insertDivider(afterLine):
             let divider = "---"

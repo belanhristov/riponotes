@@ -21,6 +21,11 @@ public struct NoteEditorView: View {
                         toolbarButton("H+") { viewModel.applyToolbar(.increaseHeading) }
                         toolbarButton("H-") { viewModel.applyToolbar(.decreaseHeading) }
                         toolbarButton("Checklist") { viewModel.applyToolbar(.toggleChecklist) }
+                        toolbarButton("Bullets") { viewModel.applyToolbar(.toggleBulletedList) }
+                        toolbarButton("Numbers") { viewModel.applyToolbar(.toggleNumberedList) }
+                        toolbarButton("Quote") { viewModel.applyToolbar(.toggleQuote) }
+                        toolbarButton("Code") { viewModel.applyToolbar(.toggleCodeFence) }
+                        toolbarButton("Time") { viewModel.applyToolbar(.insertTimestamp) }
                         toolbarButton("Divider") { viewModel.applyToolbar(.insertDivider(afterLine: nil)) }
                     }
                 }

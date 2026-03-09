@@ -62,14 +62,20 @@ public struct TemplateStudioView: View {
                     .textFieldStyle(.roundedBorder)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    toolbarButton("Indent") { viewModel.applyToolbarToDraftBody(.indent) }
-                    toolbarButton("Outdent") { viewModel.applyToolbarToDraftBody(.outdent) }
-                    toolbarButton("H+") { viewModel.applyToolbarToDraftBody(.increaseHeading) }
-                    toolbarButton("Checklist") { viewModel.applyToolbarToDraftBody(.toggleChecklist) }
-                    toolbarButton("Divider") { viewModel.applyToolbarToDraftBody(.insertDivider(afterLine: nil)) }
+                    HStack(spacing: 8) {
+                        toolbarButton("Indent") { viewModel.applyToolbarToDraftBody(.indent) }
+                        toolbarButton("Outdent") { viewModel.applyToolbarToDraftBody(.outdent) }
+                        toolbarButton("H+") { viewModel.applyToolbarToDraftBody(.increaseHeading) }
+                        toolbarButton("H-") { viewModel.applyToolbarToDraftBody(.decreaseHeading) }
+                        toolbarButton("Checklist") { viewModel.applyToolbarToDraftBody(.toggleChecklist) }
+                        toolbarButton("Bullets") { viewModel.applyToolbarToDraftBody(.toggleBulletedList) }
+                        toolbarButton("Numbers") { viewModel.applyToolbarToDraftBody(.toggleNumberedList) }
+                        toolbarButton("Quote") { viewModel.applyToolbarToDraftBody(.toggleQuote) }
+                        toolbarButton("Code") { viewModel.applyToolbarToDraftBody(.toggleCodeFence) }
+                        toolbarButton("Time") { viewModel.applyToolbarToDraftBody(.insertTimestamp) }
+                        toolbarButton("Divider") { viewModel.applyToolbarToDraftBody(.insertDivider(afterLine: nil)) }
+                    }
                 }
-            }
 
                 TextEditor(text: $viewModel.draftBodyTemplate)
                 .frame(minHeight: 120)
