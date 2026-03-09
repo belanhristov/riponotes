@@ -521,4 +521,29 @@ struct RipoCoreTests {
         await journalVM.startFromSelectedTemplate()
         #expect(journalVM.noteEditorViewModel.noteId != nil)
     }
+
+    @Test
+    func contextSuggestionServiceProducesBeachSuggestionWhenSunnyAndNearby() async throws {
+        let weather = InMemoryWeatherProvider(
+            snapshot: WeatherSnapshot(
+                condition: .sunny,
+                temperatureCelsius: 27,
+                feelsLikeCelsius: 29
+            )
+        )
+        let place = InMemoryPlaceContextProvider(
+            context: PlaceContext(
+                latitude: 36.89,
+                longitude: 30.71,
+                label: "Konyaalti",
+                distanceToBeachMeters: 300
+            )
+        )
+        let service = ContextSuggestionService(weatherProvider: weather, placeProvider: place)
+
+        let suggestion = try await service.suggest()
+        #expect(suggestion.title == "Sahil Molası")
+        #expect(suggestion.body.contains("5 dakika"))
+        #expect(suggestion.templateHints.contains("journal_walk"))
+    }
 }

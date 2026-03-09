@@ -31,9 +31,9 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-006 | Apple Calendar + Outlook Calendar bağlama | triaged | yüksek | M | Faz 2-3 | Faz 2: Apple EventKit ile iki yönlü bağ. Faz 3: Outlook Calendar (Graph API) feature flag ile. |
 | F-007 | Şifreli günlük (journal) modu | in_progress | yüksek | M | Faz 2 | Journal workspace + app lock/passcode + encryption service + Keychain/LocalAuthentication adaptörleri eklendi; production wiring ve UI polish sırada. |
 | F-008 | AI ile otomatik günlük modları üretimi | triaged | orta | L | Faz 3 | Kullanıcı tonuna göre günlük prompt/mod önerileri; AI provider feature flag arkasında. |
-| F-009 | Hava durumu bağlama | triaged | orta | M | Faz 2 | Konuma bağlı anlık hava verisi çekimi ve note/journal bağlamında gösterim. |
+| F-009 | Hava durumu bağlama | in_progress | orta | M | Faz 2 | Weather snapshot modeli + provider protokolü + in-memory provider eklendi; gerçek weather API adaptörü ve UI gösterimi sırada. |
 | F-010 | Gelişmiş lokasyon bağlama | triaged | yüksek | M | Faz 2 | Not bazlı lokasyon ekleme var; çoklu lokasyon ve yer bazlı görünüm genişletilecek. |
-| F-011 | Hava durumuna göre mod/öneri | triaged | yüksek | L | Faz 3 | Örnek: hava güneşliyse ve sahile yakınsa 5 dk yürüyüş önerisi; öneri motoru + izin yönetimi gerekir. |
+| F-011 | Hava durumuna göre mod/öneri | in_progress | yüksek | L | Faz 3 | ContextSuggestionService çekirdeği eklendi (güneşli+sahile yakın senaryosu dahil); kişiselleştirme ve AI katmanı sırada. |
 | F-012 | Not ve Journal için ayrı Template Studio | in_progress | yüksek | M | Faz 2 | Domain + template engine + AppKit TemplateStudio view/viewmodel + canlı önizleme + şablon düzenleme kaydetme eklendi; gelişmiş medya/AI öneri entegrasyonu sırada. |
 | F-013 | Zengin düzenleme barı (editor toolbar) | in_progress | yüksek | L | Faz 2-3 | Komut çekirdeği + AppKit toolbar view/viewmodel eklendi; gelişmiş stil seçenekleri ve full editor entegrasyonu sırada. |
 | F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio ve Note Editor’da görsel ekle/çıkar UI akışı eklendi; journal editor ve medya preview polish sırada. |

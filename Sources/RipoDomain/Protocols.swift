@@ -59,6 +59,14 @@ public protocol AppAuthenticator: Sendable {
     func authenticate(reason: String) async throws -> Bool
 }
 
+public protocol WeatherProvider: Sendable {
+    func currentWeather(latitude: Double, longitude: Double) async throws -> WeatherSnapshot
+}
+
+public protocol PlaceContextProvider: Sendable {
+    func currentPlaceContext() async throws -> PlaceContext
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

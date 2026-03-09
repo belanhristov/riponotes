@@ -80,6 +80,15 @@ public enum AttachmentOwnerType: String, Codable, Sendable {
     case template
 }
 
+public enum WeatherCondition: String, Codable, Sendable, CaseIterable {
+    case sunny
+    case cloudy
+    case rainy
+    case snowy
+    case windy
+    case unknown
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider
@@ -415,6 +424,39 @@ public struct Attachment: Identifiable, Codable, Sendable, Equatable {
         self.metadataJSON = metadataJSON
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+}
+
+public struct WeatherSnapshot: Codable, Sendable, Equatable {
+    public var condition: WeatherCondition
+    public var temperatureCelsius: Double
+    public var feelsLikeCelsius: Double
+    public var capturedAt: Date
+
+    public init(
+        condition: WeatherCondition,
+        temperatureCelsius: Double,
+        feelsLikeCelsius: Double,
+        capturedAt: Date = .now
+    ) {
+        self.condition = condition
+        self.temperatureCelsius = temperatureCelsius
+        self.feelsLikeCelsius = feelsLikeCelsius
+        self.capturedAt = capturedAt
+    }
+}
+
+public struct PlaceContext: Codable, Sendable, Equatable {
+    public var latitude: Double
+    public var longitude: Double
+    public var label: String
+    public var distanceToBeachMeters: Double?
+
+    public init(latitude: Double, longitude: Double, label: String, distanceToBeachMeters: Double? = nil) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.label = label
+        self.distanceToBeachMeters = distanceToBeachMeters
     }
 }
 

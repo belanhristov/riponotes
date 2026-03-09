@@ -238,3 +238,35 @@ public actor InMemoryAppAuthenticator: AppAuthenticator {
         nextResult = value
     }
 }
+
+public actor InMemoryWeatherProvider: WeatherProvider {
+    private var snapshot: WeatherSnapshot
+
+    public init(snapshot: WeatherSnapshot) {
+        self.snapshot = snapshot
+    }
+
+    public func currentWeather(latitude _: Double, longitude _: Double) async throws -> WeatherSnapshot {
+        snapshot
+    }
+
+    public func setSnapshot(_ snapshot: WeatherSnapshot) async {
+        self.snapshot = snapshot
+    }
+}
+
+public actor InMemoryPlaceContextProvider: PlaceContextProvider {
+    private var context: PlaceContext
+
+    public init(context: PlaceContext) {
+        self.context = context
+    }
+
+    public func currentPlaceContext() async throws -> PlaceContext {
+        context
+    }
+
+    public func setContext(_ context: PlaceContext) async {
+        self.context = context
+    }
+}
