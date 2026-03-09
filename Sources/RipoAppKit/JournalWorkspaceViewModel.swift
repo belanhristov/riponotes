@@ -73,6 +73,9 @@ public final class JournalWorkspaceViewModel: ObservableObject {
                 )
                 noteEditorViewModel.title = draft.title
                 noteEditorViewModel.body = draft.body
+                await noteEditorViewModel.addTags(draft.tags + ["journal"])
+            } else {
+                await noteEditorViewModel.addTags(["journal"])
             }
             errorMessage = nil
         } catch {
@@ -193,8 +196,9 @@ public final class JournalWorkspaceViewModel: ObservableObject {
                     errorMessage = String(describing: JournalSecurityError.locked)
                     return
                 }
-                let encrypted = try await securityService.encrypt(noteEditorViewModel.body)
-                noteEditorViewModel.body = "[ENCRYPTED]\n\(encrypted)"
+            let encrypted = try await securityService.encrypt(noteEditorViewModel.body)
+            noteEditorViewModel.body = "[ENCRYPTED]\n\(encrypted)"
+            await noteEditorViewModel.addTags(["encrypted"])
             }
             _ = try await noteEditorViewModel.save()
             errorMessage = nil

@@ -172,6 +172,24 @@ public final class NoteEditorViewModel: ObservableObject {
         }
     }
 
+    public func addTags(_ tags: [String]) async {
+        guard let noteId,
+              let taggingService else { return }
+        do {
+            var last: Note?
+            for tag in tags {
+                if tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { continue }
+                last = try await taggingService.addTagToNote(noteId: noteId, rawTag: tag)
+            }
+            if let last {
+                noteTags = last.tags.sorted()
+            }
+            tagError = nil
+        } catch {
+            tagError = String(describing: error)
+        }
+    }
+
     public func removeAttachmentTag(attachmentId: UUID, tag: String) async {
         guard let taggingService else { return }
         do {

@@ -1184,6 +1184,89 @@ struct RipoCoreTests {
         #expect(journalVM.noteEditorViewModel.body == encryptedBody)
     }
 
+    @MainActor
+    @Test
+    func journalWorkspaceAutoTemplateAddsMoodAndDayPartTags() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+        let tagging = TaggingService(
+            noteRepository: noteRepo,
+            attachmentRepository: attachmentRepo,
+            tripRepository: InMemoryTripRepository()
+        )
+
+        let templateEngine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+        let editorService = NoteEditorService(noteRepository: noteRepo, syncEngine: sync)
+        let noteEditorVM = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: noteRepo,
+            editorService: editorService,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService,
+            taggingService: tagging
+        )
+        let journalVM = JournalWorkspaceViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: templateEngine,
+            noteEditorViewModel: noteEditorVM
+        )
+
+        journalVM.useAutoTemplate = true
+        journalVM.selectedMood = .joyful
+        journalVM.selectedDayPart = .night
+        await journalVM.startBlankEntry()
+        await journalVM.saveCurrentEntry()
+
+        let saved = try await noteRepo.note(by: noteEditorVM.noteId ?? UUID())
+        #expect(saved?.tags.contains("journal") == true)
+        #expect(saved?.tags.contains("joyful") == true)
+        #expect(saved?.tags.contains("night") == true)
+    }
+
+    @Test
+    func journalArchiveServiceReturnsSafeExcerptForEncryptedEntries() async throws {
+        let userId = UUID()
+        let noteRepo = InMemoryNoteRepository()
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+
+        let plain = Note(
+            ownerUserId: userId,
+            title: "Calm Night",
+            plainTextBody: "Line one\nLine two\nLine three",
+            source: .manual,
+            tags: ["journal", "calm", "night"],
+            createdAt: now,
+            updatedAt: now
+        )
+        let encrypted = Note(
+            ownerUserId: userId,
+            title: "Encrypted",
+            plainTextBody: "[ENCRYPTED]\nabc",
+            source: .manual,
+            tags: ["journal", "sad", "daytime", "encrypted"],
+            createdAt: now.addingTimeInterval(100),
+            updatedAt: now.addingTimeInterval(100)
+        )
+        try await noteRepo.create(plain)
+        try await noteRepo.create(encrypted)
+
+        let service = JournalArchiveService(noteRepository: noteRepo)
+        let cards = try await service.timeline(ownerUserId: userId, monthAnchor: now)
+        #expect(cards.count == 2)
+        #expect(cards.first?.isEncrypted == true)
+        #expect(cards.first?.excerpt == "Encrypted entry - unlock to preview")
+        #expect(cards.last?.excerpt.contains("Line one") == true)
+    }
+
     @Test
     func contextSuggestionServiceProducesBeachSuggestionWhenSunnyAndNearby() async throws {
         let weather = InMemoryWeatherProvider(
