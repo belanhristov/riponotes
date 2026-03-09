@@ -116,6 +116,69 @@ public actor InMemoryReminderRepository: ReminderRepository {
     }
 }
 
+public actor InMemoryListRepository: ListRepository {
+    private var listsById: [UUID: RipoList] = [:]
+    private var itemsById: [UUID: ListItem] = [:]
+
+    public init() {}
+
+    public func upsertList(_ list: RipoList) async throws {
+        listsById[list.id] = list
+    }
+
+    public func list(by id: UUID) async throws -> RipoList? {
+        listsById[id]
+    }
+
+    public func lists(noteId: UUID?) async throws -> [RipoList] {
+        listsById.values
+            .filter { noteId == nil || $0.noteId == noteId }
+            .sorted(by: { $0.updatedAt > $1.updatedAt })
+    }
+
+    public func upsertItem(_ item: ListItem) async throws {
+        itemsById[item.id] = item
+    }
+
+    public func items(listId: UUID) async throws -> [ListItem] {
+        itemsById.values
+            .filter { $0.listId == listId }
+            .sorted(by: { $0.order < $1.order })
+    }
+}
+
+public actor InMemoryContactLinkRepository: ContactLinkRepository {
+    private var linksById: [UUID: ContactLink] = [:]
+
+    public init() {}
+
+    public func upsert(_ link: ContactLink) async throws {
+        linksById[link.id] = link
+    }
+
+    public func links(noteId: UUID) async throws -> [ContactLink] {
+        linksById.values
+            .filter { $0.noteId == noteId }
+            .sorted(by: { $0.createdAt < $1.createdAt })
+    }
+}
+
+public actor InMemoryLocationLinkRepository: LocationLinkRepository {
+    private var linksById: [UUID: LocationLink] = [:]
+
+    public init() {}
+
+    public func upsert(_ link: LocationLink) async throws {
+        linksById[link.id] = link
+    }
+
+    public func links(noteId: UUID) async throws -> [LocationLink] {
+        linksById.values
+            .filter { $0.noteId == noteId }
+            .sorted(by: { $0.label < $1.label })
+    }
+}
+
 public actor InMemoryReminderScheduler: ReminderScheduler {
     private var scheduled: [UUID: Reminder] = [:]
 

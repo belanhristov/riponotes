@@ -15,6 +15,18 @@ public final class NoteEditorViewModel: ObservableObject {
     @Published public var newNoteTagText: String = ""
     @Published public var attachmentTagInputs: [UUID: String] = [:]
     @Published public private(set) var tagError: String?
+    @Published public private(set) var convertMessage: String?
+    @Published public private(set) var convertError: String?
+
+    @Published public var convertReminderAt: Date = .now.addingTimeInterval(60 * 60)
+    @Published public var convertListTitle: String = ""
+    @Published public var convertListItemsText: String = ""
+    @Published public var convertContactIdentifier: String = ""
+    @Published public var convertContactDisplayName: String = ""
+    @Published public var convertLocationLabel: String = ""
+    @Published public var convertLatitude: String = ""
+    @Published public var convertLongitude: String = ""
+    @Published public var convertRadiusMeters: String = "200"
 
     private let ownerUserId: UUID
     private let noteRepository: NoteRepository
@@ -23,6 +35,7 @@ public final class NoteEditorViewModel: ObservableObject {
     private let attachmentRepository: AttachmentRepository?
     private let attachmentService: AttachmentService?
     private let taggingService: TaggingService?
+    private let convertService: ConvertNoteService?
 
     public init(
         ownerUserId: UUID,
@@ -31,7 +44,8 @@ public final class NoteEditorViewModel: ObservableObject {
         toolbarViewModel: EditorToolbarViewModel = EditorToolbarViewModel(),
         attachmentRepository: AttachmentRepository? = nil,
         attachmentService: AttachmentService? = nil,
-        taggingService: TaggingService? = nil
+        taggingService: TaggingService? = nil,
+        convertService: ConvertNoteService? = nil
     ) {
         self.ownerUserId = ownerUserId
         self.noteRepository = noteRepository
@@ -40,6 +54,7 @@ public final class NoteEditorViewModel: ObservableObject {
         self.attachmentRepository = attachmentRepository
         self.attachmentService = attachmentService
         self.taggingService = taggingService
+        self.convertService = convertService
     }
 
     public func open(noteId: UUID?) async throws {
@@ -180,5 +195,73 @@ public final class NoteEditorViewModel: ObservableObject {
         toolbarError = nil
         attachmentError = nil
         tagError = nil
+        convertMessage = nil
+        convertError = nil
+    }
+
+    public func convertToReminder() async {
+        guard let noteId,
+              let convertService else { return }
+        do {
+            let reminder = try await convertService.convertToReminder(
+                noteId: noteId,
+                triggerAt: convertReminderAt
+            )
+            convertMessage = "Reminder created at \(reminder.triggerAt.formatted())"
+            convertError = nil
+        } catch {
+            convertError = String(describing: error)
+        }
+    }
+
+    public func convertToList() async {
+        guard let noteId,
+              let convertService else { return }
+        do {
+            let lines = convertListItemsText.split(separator: "\n").map(String.init)
+            let list = try await convertService.convertToList(
+                noteId: noteId,
+                title: convertListTitle.isEmpty ? (title.isEmpty ? "New List" : title) : convertListTitle,
+                items: lines
+            )
+            convertMessage = "List created: \(list.title)"
+            convertError = nil
+        } catch {
+            convertError = String(describing: error)
+        }
+    }
+
+    public func convertToContactLink() async {
+        guard let noteId,
+              let convertService else { return }
+        do {
+            let link = try await convertService.convertToContactLink(
+                noteId: noteId,
+                contactIdentifier: convertContactIdentifier,
+                displayNameSnapshot: convertContactDisplayName
+            )
+            convertMessage = "Contact linked: \(link.displayNameSnapshot)"
+            convertError = nil
+        } catch {
+            convertError = String(describing: error)
+        }
+    }
+
+    public func convertToLocationLink() async {
+        guard let noteId,
+              let convertService else { return }
+        do {
+            let link = try await convertService.convertToLocationLink(
+                noteId: noteId,
+                latitude: Double(convertLatitude) ?? 0,
+                longitude: Double(convertLongitude) ?? 0,
+                radiusMeters: Double(convertRadiusMeters) ?? 200,
+                label: convertLocationLabel.isEmpty ? "Pinned Place" : convertLocationLabel
+            )
+            convertMessage = "Location linked: \(link.label)"
+            convertError = nil
+        } catch {
+            convertError = String(describing: error)
+        }
     }
 }

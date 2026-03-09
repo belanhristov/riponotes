@@ -40,7 +40,16 @@ struct RipoCoreTests {
     func convertNoteCreatesAndSchedulesReminder() async throws {
         let reminderRepo = InMemoryReminderRepository()
         let scheduler = InMemoryReminderScheduler()
-        let convert = ConvertNoteService(reminderRepository: reminderRepo, reminderScheduler: scheduler)
+        let listRepo = InMemoryListRepository()
+        let contactRepo = InMemoryContactLinkRepository()
+        let locationRepo = InMemoryLocationLinkRepository()
+        let convert = ConvertNoteService(
+            reminderRepository: reminderRepo,
+            reminderScheduler: scheduler,
+            listRepository: listRepo,
+            contactLinkRepository: contactRepo,
+            locationLinkRepository: locationRepo
+        )
 
         let noteId = UUID()
         let trigger = Date(timeIntervalSince1970: 2_000_000_000)
@@ -60,6 +69,51 @@ struct RipoCoreTests {
         let scheduled = await scheduler.scheduledReminder(reminderId: reminder.id)
         #expect(scheduled != nil)
         #expect(scheduled?.triggerAt == trigger)
+    }
+
+    @Test
+    func convertNoteCreatesListContactAndLocationLinks() async throws {
+        let reminderRepo = InMemoryReminderRepository()
+        let scheduler = InMemoryReminderScheduler()
+        let listRepo = InMemoryListRepository()
+        let contactRepo = InMemoryContactLinkRepository()
+        let locationRepo = InMemoryLocationLinkRepository()
+        let convert = ConvertNoteService(
+            reminderRepository: reminderRepo,
+            reminderScheduler: scheduler,
+            listRepository: listRepo,
+            contactLinkRepository: contactRepo,
+            locationLinkRepository: locationRepo
+        )
+
+        let noteId = UUID()
+        let list = try await convert.convertToList(
+            noteId: noteId,
+            title: "Rome TODO",
+            templateType: "travel",
+            items: ["Passport", "Voucher"]
+        )
+        let items = try await listRepo.items(listId: list.id)
+        #expect(items.count == 2)
+
+        let contact = try await convert.convertToContactLink(
+            noteId: noteId,
+            contactIdentifier: "contact-001",
+            displayNameSnapshot: "Ahmet"
+        )
+        #expect(contact.displayNameSnapshot == "Ahmet")
+        #expect((try await contactRepo.links(noteId: noteId)).count == 1)
+
+        let location = try await convert.convertToLocationLink(
+            noteId: noteId,
+            latitude: 41.9,
+            longitude: 12.4,
+            radiusMeters: 250,
+            label: "Trevi",
+            triggerType: .onEnter
+        )
+        #expect(location.label == "Trevi")
+        #expect((try await locationRepo.links(noteId: noteId)).count == 1)
     }
 
     @Test
@@ -121,11 +175,21 @@ struct RipoCoreTests {
         let sync = InMemorySyncEngine()
         let attachmentRepo = InMemoryAttachmentRepository()
         let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+        let listRepo = InMemoryListRepository()
+        let contactRepo = InMemoryContactLinkRepository()
+        let locationRepo = InMemoryLocationLinkRepository()
         let tripRepo = InMemoryTripRepository()
         let tagging = TaggingService(
             noteRepository: repo,
             attachmentRepository: attachmentRepo,
             tripRepository: tripRepo
+        )
+        let convert = ConvertNoteService(
+            reminderRepository: InMemoryReminderRepository(),
+            reminderScheduler: InMemoryReminderScheduler(),
+            listRepository: listRepo,
+            contactLinkRepository: contactRepo,
+            locationLinkRepository: locationRepo
         )
         let userId = UUID()
 
@@ -136,7 +200,8 @@ struct RipoCoreTests {
             editorService: service,
             attachmentRepository: attachmentRepo,
             attachmentService: attachmentService,
-            taggingService: tagging
+            taggingService: tagging,
+            convertService: convert
         )
 
         try await vm.open(noteId: nil)
@@ -172,6 +237,13 @@ struct RipoCoreTests {
             await vm.removeAttachment(image.id)
         }
         #expect(vm.noteAttachments.isEmpty)
+
+        vm.convertListTitle = "Checklist"
+        vm.convertListItemsText = "a\nb"
+        await vm.convertToList()
+        #expect(vm.convertMessage?.contains("List created") == true)
+        let lists = try await listRepo.lists(noteId: vm.noteId)
+        #expect(lists.count == 1)
     }
 
     #if canImport(SwiftData)
@@ -821,6 +893,55 @@ struct RipoCoreTests {
         #expect(journalVM.noteEditorViewModel.title == "Journal 2026-03-09")
         #expect(journalVM.noteEditorViewModel.body.contains("Mood: Relaxed"))
         #expect(journalVM.noteEditorViewModel.body.contains("Place: Balcony"))
+    }
+
+    @MainActor
+    @Test
+    func journalWorkspaceStartsFromContextSuggestion() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+
+        let templateEngine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+
+        let editorService = NoteEditorService(noteRepository: noteRepo, syncEngine: sync)
+        let noteEditorVM = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: noteRepo,
+            editorService: editorService,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
+        )
+
+        let contextService = ContextSuggestionService(
+            weatherProvider: InMemoryWeatherProvider(
+                snapshot: WeatherSnapshot(condition: .sunny, temperatureCelsius: 26, feelsLikeCelsius: 27)
+            ),
+            placeProvider: InMemoryPlaceContextProvider(
+                context: PlaceContext(latitude: 36.89, longitude: 30.71, label: "Konyaalti", distanceToBeachMeters: 300)
+            )
+        )
+
+        let journalVM = JournalWorkspaceViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: templateEngine,
+            noteEditorViewModel: noteEditorVM,
+            contextSuggestionService: contextService
+        )
+
+        await journalVM.load()
+        #expect(journalVM.contextSuggestion?.title == "Sahil Molası")
+        await journalVM.startFromContextSuggestion()
+        #expect(journalVM.noteEditorViewModel.title == "Sahil Molası")
+        #expect(journalVM.noteEditorViewModel.body.contains("sahil yürüyüşü"))
     }
 
     @Test

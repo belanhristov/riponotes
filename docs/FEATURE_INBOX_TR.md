@@ -24,13 +24,13 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | ID | Özellik | Durum | Etki | Maliyet | Faz | Not |
 |---|---|---|---|---|---|---|
 | F-001 | Brain Dump mode | in_progress | yüksek | S | Faz 1 | Inbox ekranına brain dump input + save akışı ve validasyon eklendi; single-focus entry ve launch shortcut polish sırada. |
-| F-002 | Convert button (note -> list/reminder/contact/location) | triaged | yüksek | M | Faz 1-2 | Reminder kısmı çekirdekte başladı, UI ve diğer dönüşümler eksik. |
+| F-002 | Convert button (note -> list/reminder/contact/location) | in_progress | yüksek | M | Faz 1-2 | Reminder + list + contact + location conversion use-case ve Note Editor UI akışı eklendi; native contact picker/map picker entegrasyonu sırada. |
 | F-003 | Follow-up mode | new | orta | M | Faz 2 | Kişi ataması + notification kuralı ile bağlanacak. |
 | F-004 | Where I need this (location-triggered notes) | new | yüksek | M | Faz 2 | LocationLink ve geofence reminder ile kurulacak. |
 | F-005 | Mail to Note capture | new | yüksek | L | Faz 3 | Apple Mail/Outlook entegrasyonlarının temel değeri. |
 | F-006 | Apple Calendar + Outlook Calendar bağlama | triaged | yüksek | M | Faz 2-3 | Faz 2: Apple EventKit ile iki yönlü bağ. Faz 3: Outlook Calendar (Graph API) feature flag ile. |
 | F-007 | Şifreli günlük (journal) modu | in_progress | yüksek | M | Faz 2 | Journal workspace + app lock/passcode + encryption service + Keychain/LocalAuthentication adaptörleri eklendi; lock sırasında editor state privacy reset + locked editor placeholder eklendi; production wiring ve UI polish sırada. |
-| F-008 | AI ile otomatik günlük modları üretimi | triaged | orta | L | Faz 3 | Kullanıcı tonuna göre günlük prompt/mod önerileri; AI provider feature flag arkasında. |
+| F-008 | AI ile otomatik günlük modları üretimi | in_progress | orta | L | Faz 3 | ContextSuggestionService Journal workspace'e bağlandı (Context Mode ile tek adım başlangıç); gerçek AI provider + kişisel ton uyarlaması sırada. |
 | F-009 | Hava durumu bağlama | in_progress | orta | M | Faz 2 | Weather snapshot modeli + provider protokolü + in-memory provider eklendi; gerçek weather API adaptörü ve UI gösterimi sırada. |
 | F-010 | Gelişmiş lokasyon bağlama | triaged | yüksek | M | Faz 2 | Not bazlı lokasyon ekleme var; çoklu lokasyon ve yer bazlı görünüm genişletilecek. |
 | F-011 | Hava durumuna göre mod/öneri | in_progress | yüksek | L | Faz 3 | ContextSuggestionService çekirdeği eklendi (güneşli+sahile yakın senaryosu dahil); kişiselleştirme ve AI katmanı sırada. |
@@ -39,7 +39,7 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-014 | Şablon/Not/Journal içine resim ekleme | in_progress | yüksek | M | Faz 2 | Attachment modeli + servis + testler + Template Studio ve Note Editor’da görsel ekle/çıkar UI akışı eklendi; journal editor ve medya preview polish sırada. |
 | F-015 | AI önerilen moddan tek adım yazmaya başlama | triaged | orta | M | Faz 3 | AI mod önerisi seçildiğinde doğrudan editöre düşen hazır başlangıç metni/şablon. |
 | F-016 | Bağlama göre otomatik şablon üretimi | triaged | yüksek | L | Faz 3 | Hava + konum + mod sinyaline göre (örn. sahile yakın/güneşli) otomatik template önerimi/oluşturma. |
-| F-017 | Travel Planner (Trip workspace) | in_progress | yüksek | L | Faz 3 | Trip domain + service + AppKit TravelWorkspace view/viewmodel + test eklendi; gerçek app target wiring ve data persistence polish sırada. |
+| F-017 | Travel Planner (Trip workspace) | in_progress | yüksek | L | Faz 3 | Trip domain + service + AppKit TravelWorkspace view/viewmodel + test eklendi; **2026-03-09 itibarıyla ürün kararıyla geçici duraklatıldı, Notes/Günlük odak aktif**. |
 | F-018 | Uçak + otel itinerary girişi | in_progress | yüksek | M | Faz 3 | Flight/hotel segment service + AppKit UI girişi eklendi; rezervasyon importu ve provider entegrasyonu sırada. |
 | F-019 | Seyahat tarihine göre hava kontrolü | triaged | yüksek | M | Faz 3 | Trip tarihine göre hedef lokasyon hava özeti ve uyarılar. |
 | F-020 | Seyahat öncesi checklist | in_progress | yüksek | S | Faz 3 | Checklist item modeli + toggle + Travel workspace UI akışı eklendi; reminder bağlama sırada. |

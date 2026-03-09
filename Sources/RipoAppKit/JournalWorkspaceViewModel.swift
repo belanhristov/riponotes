@@ -10,6 +10,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
     @Published public var errorMessage: String?
     @Published public private(set) var isLockEnabled: Bool = false
     @Published public private(set) var isUnlocked: Bool = true
+    @Published public private(set) var contextSuggestion: ContextSuggestion?
 
     public let noteEditorViewModel: NoteEditorViewModel
 
@@ -17,19 +18,22 @@ public final class JournalWorkspaceViewModel: ObservableObject {
     private let templateRepository: TemplateRepository
     private let templateEngine: TemplateEngineService
     private let securityService: JournalSecurityService?
+    private let contextSuggestionService: ContextSuggestionService?
 
     public init(
         ownerUserId: UUID,
         templateRepository: TemplateRepository,
         templateEngine: TemplateEngineService,
         noteEditorViewModel: NoteEditorViewModel,
-        securityService: JournalSecurityService? = nil
+        securityService: JournalSecurityService? = nil,
+        contextSuggestionService: ContextSuggestionService? = nil
     ) {
         self.ownerUserId = ownerUserId
         self.templateRepository = templateRepository
         self.templateEngine = templateEngine
         self.noteEditorViewModel = noteEditorViewModel
         self.securityService = securityService
+        self.contextSuggestionService = contextSuggestionService
     }
 
     public func load() async {
@@ -40,6 +44,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
             }
             try await refreshSecurityStatus()
             applyLockStateToEditor()
+            await refreshContextSuggestion()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -124,6 +129,32 @@ public final class JournalWorkspaceViewModel: ObservableObject {
             try await securityService.lock()
             try await refreshSecurityStatus()
             applyLockStateToEditor()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func refreshContextSuggestion() async {
+        guard let contextSuggestionService else { return }
+        do {
+            contextSuggestion = try await contextSuggestionService.suggest()
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func startFromContextSuggestion() async {
+        if isLockEnabled && !isUnlocked {
+            errorMessage = String(describing: JournalSecurityError.locked)
+            return
+        }
+        guard let contextSuggestion else { return }
+        do {
+            try await noteEditorViewModel.open(noteId: nil)
+            noteEditorViewModel.title = contextSuggestion.title
+            noteEditorViewModel.body = contextSuggestion.body
+            _ = try await noteEditorViewModel.save()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)

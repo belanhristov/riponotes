@@ -136,6 +136,56 @@ public struct NoteEditorView: View {
                 }
             }
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Convert")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    DatePicker("Reminder", selection: $viewModel.convertReminderAt, displayedComponents: [.date, .hourAndMinute])
+                    Button("To Reminder") {
+                        Task { await viewModel.convertToReminder() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                HStack(spacing: 8) {
+                    TextField("List title", text: $viewModel.convertListTitle)
+                        .textFieldStyle(.roundedBorder)
+                    Button("To List") {
+                        Task { await viewModel.convertToList() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                TextEditor(text: $viewModel.convertListItemsText)
+                    .frame(minHeight: 60)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
+
+                HStack(spacing: 8) {
+                    TextField("Contact id", text: $viewModel.convertContactIdentifier)
+                    TextField("Contact name", text: $viewModel.convertContactDisplayName)
+                    Button("To Contact") {
+                        Task { await viewModel.convertToContactLink() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .textFieldStyle(.roundedBorder)
+
+                HStack(spacing: 8) {
+                    TextField("Location label", text: $viewModel.convertLocationLabel)
+                    TextField("Lat", text: $viewModel.convertLatitude)
+                    TextField("Lon", text: $viewModel.convertLongitude)
+                    TextField("Radius", text: $viewModel.convertRadiusMeters)
+                    Button("To Location") {
+                        Task { await viewModel.convertToLocationLink() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .textFieldStyle(.roundedBorder)
+            }
+
             if let toolbarError = viewModel.toolbarError {
                 Text(toolbarError)
                     .font(.footnote)
@@ -150,6 +200,18 @@ public struct NoteEditorView: View {
 
             if let tagError = viewModel.tagError {
                 Text(tagError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+
+            if let convertMessage = viewModel.convertMessage {
+                Text(convertMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.green)
+            }
+
+            if let convertError = viewModel.convertError {
+                Text(convertError)
                     .font(.footnote)
                     .foregroundStyle(.red)
             }

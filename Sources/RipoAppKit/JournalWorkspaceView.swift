@@ -46,6 +46,29 @@ public struct JournalWorkspaceView: View {
                     Task { await viewModel.startFromSelectedTemplate() }
                 }
                 .buttonStyle(.bordered)
+
+                Button("Context Mode") {
+                    Task { await viewModel.startFromContextSuggestion() }
+                }
+                .buttonStyle(.bordered)
+            }
+
+            if let suggestion = viewModel.contextSuggestion {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Suggested Mode: \(suggestion.title)")
+                        .font(.headline)
+                    Text(suggestion.body)
+                        .font(.footnote)
+                    Text("Hints: \(suggestion.templateHints.joined(separator: ", "))")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                )
             }
 
             List(viewModel.journalTemplates, selection: selectedBinding) { template in

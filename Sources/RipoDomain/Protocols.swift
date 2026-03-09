@@ -26,6 +26,25 @@ public protocol ReminderRepository: Sendable {
     func reminders(for noteId: UUID) async throws -> [Reminder]
 }
 
+public protocol ListRepository: Sendable {
+    func upsertList(_ list: RipoList) async throws
+    func list(by id: UUID) async throws -> RipoList?
+    func lists(noteId: UUID?) async throws -> [RipoList]
+
+    func upsertItem(_ item: ListItem) async throws
+    func items(listId: UUID) async throws -> [ListItem]
+}
+
+public protocol ContactLinkRepository: Sendable {
+    func upsert(_ link: ContactLink) async throws
+    func links(noteId: UUID) async throws -> [ContactLink]
+}
+
+public protocol LocationLinkRepository: Sendable {
+    func upsert(_ link: LocationLink) async throws
+    func links(noteId: UUID) async throws -> [LocationLink]
+}
+
 public protocol ReminderScheduler: Sendable {
     func schedule(_ reminder: Reminder) async throws
     func cancel(reminderId: UUID) async throws
