@@ -1,5 +1,6 @@
 import SwiftUI
 import RipoDomain
+import RipoUseCases
 
 public struct JournalWorkspaceView: View {
     @ObservedObject private var viewModel: JournalWorkspaceViewModel
@@ -51,6 +52,26 @@ public struct JournalWorkspaceView: View {
                     Task { await viewModel.startFromContextSuggestion() }
                 }
                 .buttonStyle(.bordered)
+
+                Button("Save Entry") {
+                    Task { await viewModel.saveCurrentEntry() }
+                }
+                .buttonStyle(.bordered)
+            }
+
+            HStack(spacing: 8) {
+                Picker("Mood", selection: $viewModel.selectedMood) {
+                    ForEach(JourneyMood.allCases, id: \.self) { mood in
+                        Text(mood.title).tag(mood)
+                    }
+                }
+                Picker("Time", selection: $viewModel.selectedDayPart) {
+                    ForEach(JourneyDayPart.allCases, id: \.self) { dayPart in
+                        Text(dayPart.title).tag(dayPart)
+                    }
+                }
+                Toggle("Auto Template", isOn: $viewModel.useAutoTemplate)
+                Toggle("Encrypt On Save", isOn: $viewModel.encryptOnSave)
             }
 
             if let suggestion = viewModel.contextSuggestion {

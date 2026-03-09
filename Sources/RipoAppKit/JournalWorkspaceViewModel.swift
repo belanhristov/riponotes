@@ -11,6 +11,10 @@ public final class JournalWorkspaceViewModel: ObservableObject {
     @Published public private(set) var isLockEnabled: Bool = false
     @Published public private(set) var isUnlocked: Bool = true
     @Published public private(set) var contextSuggestion: ContextSuggestion?
+    @Published public var selectedMood: JourneyMood = .calm
+    @Published public var selectedDayPart: JourneyDayPart = .daytime
+    @Published public var useAutoTemplate: Bool = true
+    @Published public var encryptOnSave: Bool = false
 
     public let noteEditorViewModel: NoteEditorViewModel
 
@@ -19,6 +23,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
     private let templateEngine: TemplateEngineService
     private let securityService: JournalSecurityService?
     private let contextSuggestionService: ContextSuggestionService?
+    private let journeyTemplateService: JourneyTemplateService
 
     public init(
         ownerUserId: UUID,
@@ -26,7 +31,8 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         templateEngine: TemplateEngineService,
         noteEditorViewModel: NoteEditorViewModel,
         securityService: JournalSecurityService? = nil,
-        contextSuggestionService: ContextSuggestionService? = nil
+        contextSuggestionService: ContextSuggestionService? = nil,
+        journeyTemplateService: JourneyTemplateService = JourneyTemplateService()
     ) {
         self.ownerUserId = ownerUserId
         self.templateRepository = templateRepository
@@ -34,6 +40,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         self.noteEditorViewModel = noteEditorViewModel
         self.securityService = securityService
         self.contextSuggestionService = contextSuggestionService
+        self.journeyTemplateService = journeyTemplateService
     }
 
     public func load() async {
@@ -58,6 +65,14 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         }
         do {
             try await noteEditorViewModel.open(noteId: nil)
+            if useAutoTemplate {
+                let draft = journeyTemplateService.makeDraft(
+                    mood: selectedMood,
+                    dayPart: selectedDayPart
+                )
+                noteEditorViewModel.title = draft.title
+                noteEditorViewModel.body = draft.body
+            }
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -154,6 +169,32 @@ public final class JournalWorkspaceViewModel: ObservableObject {
             try await noteEditorViewModel.open(noteId: nil)
             noteEditorViewModel.title = contextSuggestion.title
             noteEditorViewModel.body = contextSuggestion.body
+            _ = try await noteEditorViewModel.save()
+            errorMessage = nil
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    public func saveCurrentEntry() async {
+        do {
+            if encryptOnSave {
+                guard let securityService else {
+                    errorMessage = "Encryption requires journal lock setup."
+                    return
+                }
+                let status = try await securityService.status()
+                guard status.isLockEnabled else {
+                    errorMessage = "Enable journal lock before encrypted save."
+                    return
+                }
+                guard status.isUnlocked else {
+                    errorMessage = String(describing: JournalSecurityError.locked)
+                    return
+                }
+                let encrypted = try await securityService.encrypt(noteEditorViewModel.body)
+                noteEditorViewModel.body = "[ENCRYPTED]\n\(encrypted)"
+            }
             _ = try await noteEditorViewModel.save()
             errorMessage = nil
         } catch {
