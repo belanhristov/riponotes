@@ -110,3 +110,41 @@ public actor InMemorySyncEngine: SyncEngine {
         queue.removeAll(where: { $0.id == jobId })
     }
 }
+
+public actor InMemoryCalendarLinkRepository: CalendarLinkRepository {
+    private var links: [UUID: CalendarLink] = [:]
+
+    public init() {}
+
+    public func upsert(_ link: CalendarLink) async throws {
+        links[link.id] = link
+    }
+
+    public func links(for noteId: UUID) async throws -> [CalendarLink] {
+        links.values
+            .filter { $0.noteId == noteId }
+            .sorted(by: { $0.startAt < $1.startAt })
+    }
+}
+
+public actor InMemoryCalendarEventService: CalendarEventService {
+    private var events: [String: (title: String, startAt: Date, endAt: Date, provider: CalendarProvider)] = [:]
+
+    public init() {}
+
+    public func createOrUpdateEvent(
+        title: String,
+        notes _: String,
+        startAt: Date,
+        endAt: Date,
+        provider: CalendarProvider
+    ) async throws -> String {
+        let id = "\(provider.rawValue)-\(UUID().uuidString)"
+        events[id] = (title: title, startAt: startAt, endAt: endAt, provider: provider)
+        return id
+    }
+
+    public func event(id: String) async -> (title: String, startAt: Date, endAt: Date, provider: CalendarProvider)? {
+        events[id]
+    }
+}

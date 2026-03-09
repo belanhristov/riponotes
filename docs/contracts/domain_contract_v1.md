@@ -10,6 +10,7 @@ Bu sözleşme platform bağımsızdır ve Apple (SwiftUI) + Android (Kotlin) ist
 - `ListItem`
 - `ContactLink`
 - `LocationLink`
+- `CalendarLink`
 - `Attachment`
 
 ## Required Note Fields

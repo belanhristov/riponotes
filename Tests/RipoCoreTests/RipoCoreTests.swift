@@ -159,4 +159,54 @@ struct RipoCoreTests {
         #expect(meetingNote.plainTextBody.contains("- Ahmet"))
         #expect(meetingNote.plainTextBody.contains("- Ayse"))
     }
+
+    @Test
+    func reminderCalendarServiceBindsReminderAndCalendarLink() async throws {
+        let reminderRepo = InMemoryReminderRepository()
+        let scheduler = InMemoryReminderScheduler()
+        let linkRepo = InMemoryCalendarLinkRepository()
+        let eventService = InMemoryCalendarEventService()
+        let service = ReminderCalendarService(
+            reminderRepository: reminderRepo,
+            reminderScheduler: scheduler,
+            calendarLinkRepository: linkRepo,
+            calendarEventService: eventService
+        )
+
+        let note = Note(
+            ownerUserId: UUID(),
+            title: "Doctor Appointment",
+            plainTextBody: "Annual check-up",
+            source: .manual
+        )
+        let start = Date(timeIntervalSince1970: 2_100_000_000)
+        let end = start.addingTimeInterval(60 * 45)
+
+        let result = try await service.bindNote(
+            note: note,
+            startAt: start,
+            endAt: end,
+            provider: .apple,
+            addReminder: true,
+            addCalendarEvent: true
+        )
+
+        #expect(result.reminder != nil)
+        #expect(result.calendarLink != nil)
+
+        let reminders = try await reminderRepo.reminders(for: note.id)
+        #expect(reminders.count == 1)
+        #expect(reminders.first?.triggerAt == start)
+
+        let links = try await linkRepo.links(for: note.id)
+        #expect(links.count == 1)
+        #expect(links.first?.provider == .apple)
+        #expect(links.first?.startAt == start)
+
+        if let link = result.calendarLink {
+            let event = await eventService.event(id: link.externalEventId)
+            #expect(event != nil)
+            #expect(event?.title == "Doctor Appointment")
+        }
+    }
 }

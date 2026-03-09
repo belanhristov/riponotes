@@ -19,6 +19,21 @@ public protocol ReminderScheduler: Sendable {
     func cancel(reminderId: UUID) async throws
 }
 
+public protocol CalendarLinkRepository: Sendable {
+    func upsert(_ link: CalendarLink) async throws
+    func links(for noteId: UUID) async throws -> [CalendarLink]
+}
+
+public protocol CalendarEventService: Sendable {
+    func createOrUpdateEvent(
+        title: String,
+        notes: String,
+        startAt: Date,
+        endAt: Date,
+        provider: CalendarProvider
+    ) async throws -> String
+}
+
 public protocol SyncEngine: Sendable {
     func enqueue(_ job: SyncJob) async throws
     func pendingJobs() async throws -> [SyncJob]

@@ -49,6 +49,11 @@ public enum SyncState: String, Codable, Sendable {
     case failed
 }
 
+public enum CalendarProvider: String, Codable, Sendable {
+    case apple
+    case outlook
+}
+
 public struct User: Identifiable, Codable, Sendable, Equatable {
     public let id: UUID
     public var authProvider: AuthProvider
@@ -282,6 +287,40 @@ public struct LocationLink: Identifiable, Codable, Sendable, Equatable {
         self.radiusMeters = radiusMeters
         self.label = label
         self.triggerType = triggerType
+    }
+}
+
+public struct CalendarLink: Identifiable, Codable, Sendable, Equatable {
+    public let id: UUID
+    public var noteId: UUID
+    public var provider: CalendarProvider
+    public var externalEventId: String
+    public var eventTitleSnapshot: String
+    public var startAt: Date
+    public var endAt: Date
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        noteId: UUID,
+        provider: CalendarProvider,
+        externalEventId: String,
+        eventTitleSnapshot: String,
+        startAt: Date,
+        endAt: Date,
+        createdAt: Date = .now,
+        updatedAt: Date = .now
+    ) {
+        self.id = id
+        self.noteId = noteId
+        self.provider = provider
+        self.externalEventId = externalEventId
+        self.eventTitleSnapshot = eventTitleSnapshot
+        self.startAt = startAt
+        self.endAt = endAt
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }
 
