@@ -29,7 +29,7 @@ Aşağıdaki formatla tek satır veya kısa blok halinde yazman yeterli:
 | F-004 | Where I need this (location-triggered notes) | new | yüksek | M | Faz 2 | LocationLink ve geofence reminder ile kurulacak. |
 | F-005 | Mail to Note capture | new | yüksek | L | Faz 3 | Apple Mail/Outlook entegrasyonlarının temel değeri. |
 | F-006 | Apple Calendar + Outlook Calendar bağlama | triaged | yüksek | M | Faz 2-3 | Faz 2: Apple EventKit ile iki yönlü bağ. Faz 3: Outlook Calendar (Graph API) feature flag ile. |
-| F-007 | Şifreli günlük (journal) modu | triaged | yüksek | M | Faz 2 | Journal alanı ayrı klasör + app lock (biometric/passcode) + local encryption anahtarı. |
+| F-007 | Şifreli günlük (journal) modu | in_progress | yüksek | M | Faz 2 | Journal workspace (template seçimi + entry başlatma + editor entegrasyonu) başladı; app lock/encryption katmanı sırada. |
 | F-008 | AI ile otomatik günlük modları üretimi | triaged | orta | L | Faz 3 | Kullanıcı tonuna göre günlük prompt/mod önerileri; AI provider feature flag arkasında. |
 | F-009 | Hava durumu bağlama | triaged | orta | M | Faz 2 | Konuma bağlı anlık hava verisi çekimi ve note/journal bağlamında gösterim. |
 | F-010 | Gelişmiş lokasyon bağlama | triaged | yüksek | M | Faz 2 | Not bazlı lokasyon ekleme var; çoklu lokasyon ve yer bazlı görünüm genişletilecek. |

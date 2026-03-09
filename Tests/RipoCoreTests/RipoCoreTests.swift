@@ -379,4 +379,61 @@ struct RipoCoreTests {
         #expect(createdNote != nil)
         #expect(createdNote?.plainTextBody.contains("Mood: Calm") == true)
     }
+
+    @MainActor
+    @Test
+    func journalWorkspaceStartsEntryFromJournalTemplate() async throws {
+        let userId = UUID()
+        let templateRepo = InMemoryTemplateRepository()
+        let noteRepo = InMemoryNoteRepository()
+        let sync = InMemorySyncEngine()
+        let attachmentRepo = InMemoryAttachmentRepository()
+        let attachmentService = AttachmentService(attachmentRepository: attachmentRepo)
+
+        let templateEngine = TemplateEngineService(
+            templateRepository: templateRepo,
+            noteRepository: noteRepo,
+            syncEngine: sync
+        )
+
+        _ = try await templateEngine.createTemplate(
+            ownerUserId: userId,
+            name: "Night Journal",
+            scope: .journal,
+            type: .daily,
+            titleTemplate: "Journal {{date}}",
+            bodyTemplate: "Mood: {{mood}}\\nPlace: {{place}}"
+        )
+
+        let editorService = NoteEditorService(noteRepository: noteRepo, syncEngine: sync)
+        let noteEditorVM = NoteEditorViewModel(
+            ownerUserId: userId,
+            noteRepository: noteRepo,
+            editorService: editorService,
+            attachmentRepository: attachmentRepo,
+            attachmentService: attachmentService
+        )
+
+        let journalVM = JournalWorkspaceViewModel(
+            ownerUserId: userId,
+            templateRepository: templateRepo,
+            templateEngine: templateEngine,
+            noteEditorViewModel: noteEditorVM
+        )
+
+        await journalVM.load()
+        #expect(journalVM.journalTemplates.count == 1)
+
+        journalVM.templateVariablesText = """
+        date=2026-03-09
+        mood=Relaxed
+        place=Balcony
+        """
+        await journalVM.startFromSelectedTemplate()
+
+        #expect(journalVM.noteEditorViewModel.noteId != nil)
+        #expect(journalVM.noteEditorViewModel.title == "Journal 2026-03-09")
+        #expect(journalVM.noteEditorViewModel.body.contains("Mood: Relaxed"))
+        #expect(journalVM.noteEditorViewModel.body.contains("Place: Balcony"))
+    }
 }
