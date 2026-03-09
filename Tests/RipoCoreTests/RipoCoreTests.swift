@@ -527,6 +527,11 @@ struct RipoCoreTests {
         await journalVM.unlockWithPasscode("9999")
         await journalVM.startFromSelectedTemplate()
         #expect(journalVM.noteEditorViewModel.noteId != nil)
+
+        await journalVM.lockJournal()
+        #expect(journalVM.noteEditorViewModel.noteId == nil)
+        #expect(journalVM.noteEditorViewModel.title.isEmpty)
+        #expect(journalVM.noteEditorViewModel.body.isEmpty)
     }
 
     @Test

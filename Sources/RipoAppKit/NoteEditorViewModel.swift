@@ -106,4 +106,14 @@ public final class NoteEditorViewModel: ObservableObject {
             attachmentError = String(describing: error)
         }
     }
+
+    public func clearEditorStateForPrivacy() {
+        noteId = nil
+        title = ""
+        body = ""
+        noteAttachments = []
+        newAttachmentPath = ""
+        toolbarError = nil
+        attachmentError = nil
+    }
 }

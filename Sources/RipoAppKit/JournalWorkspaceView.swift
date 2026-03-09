@@ -69,7 +69,22 @@ public struct JournalWorkspaceView: View {
                         .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                 )
 
-            NoteEditorView(viewModel: viewModel.noteEditorViewModel)
+            if viewModel.isLockEnabled && !viewModel.isUnlocked {
+                VStack(spacing: 8) {
+                    Text("Journal Locked")
+                        .font(.headline)
+                    Text("Unlock to continue writing or viewing your journal.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 180)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                )
+            } else {
+                NoteEditorView(viewModel: viewModel.noteEditorViewModel)
+            }
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)

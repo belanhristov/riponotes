@@ -39,6 +39,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
                 selectedTemplateId = journalTemplates.first?.id
             }
             try await refreshSecurityStatus()
+            applyLockStateToEditor()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -86,6 +87,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         do {
             try await securityService.enableLock(passcode: passcode)
             try await refreshSecurityStatus()
+            applyLockStateToEditor()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -97,6 +99,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         do {
             try await securityService.unlockWithPasscode(passcode)
             try await refreshSecurityStatus()
+            applyLockStateToEditor()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -108,6 +111,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         do {
             try await securityService.unlockWithBiometrics()
             try await refreshSecurityStatus()
+            applyLockStateToEditor()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -119,6 +123,7 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         do {
             try await securityService.lock()
             try await refreshSecurityStatus()
+            applyLockStateToEditor()
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -148,5 +153,11 @@ public final class JournalWorkspaceViewModel: ObservableObject {
         let status = try await securityService.status()
         isLockEnabled = status.isLockEnabled
         isUnlocked = status.isUnlocked
+    }
+
+    private func applyLockStateToEditor() {
+        if isLockEnabled && !isUnlocked {
+            noteEditorViewModel.clearEditorStateForPrivacy()
+        }
     }
 }
