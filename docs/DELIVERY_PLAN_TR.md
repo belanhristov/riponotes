@@ -48,6 +48,20 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - Queue -> backend adapter iskeleti
 - Retry/failed state yönetimi
 
+9. Journal ve Context Layer (Faz 2)
+- Şifreli günlük modu (biometric/passcode)
+- Gelişmiş lokasyon bağlama
+- Hava durumu bağlama (konum izinli)
+
+10. Calendar Integrations (Faz 2-3)
+- Apple Calendar çift yönlü bağ (EventKit)
+- Outlook Calendar bağlama (feature flag + Graph API)
+
+11. AI Suggestion Layer (Faz 3)
+- AI günlük modları üretimi
+- Hava + lokasyona göre öneri motoru
+- Güvenlik/izin kuralları ve kullanıcı opt-in
+
 ## Karar Kriteri (Yeni özellik geldiğinde)
 
 - Kullanıcı etkisi (yüksek/orta/düşük)
@@ -55,4 +69,3 @@ Bu dosya aktif yürütme sırasıdır. Her yeni özellik önerisi önce `FEATURE
 - Apple-first öncelik uyumu
 - Android’e taşınabilirlik etkisi
 - Geliştirme maliyeti (S/M/L)
-
